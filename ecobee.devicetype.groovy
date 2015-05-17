@@ -886,14 +886,15 @@ private void generateEvent(Map results)
 				Double tempValue
                 
  				def scale = getTemperatureScale()
-                
-				if (scale == "F") {
-					tempValue = getTemperature(value).toDouble().round()
-					tempValueString = String.format('%2d', tempValue.intValue())            
-				} else {
+
+// BAB Keep 1 position of precision for Fahrenheit also                
+//				if (scale == "F") {
+//					tempValue = getTemperature(value).toDouble().round()
+//					tempValueString = String.format('%2d', tempValue.intValue())            
+//				} else {
 					tempValue = getTemperature(value).toDouble().round(1)
 					tempValueString = String.format('%2.1f', tempValue)
-				}                
+//				}                
 				def isChange = isTemperatureStateChange(device, name, tempValueString)
                 
 				isDisplayed = isChange
@@ -2703,6 +2704,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 				remoteData << data.thermostatList[0].remoteSensors[i]  // to be transformed into Json later
 			} 
 			int valueInt
+			float valueFloat
 			for (j in 0..data.thermostatList[0].remoteSensors[i].capability.size()-1) {
 				if (settings.trace) {
 					log.debug "generateRemoteSensorEvents>looping i=${i},found ${data.thermostatList[0].remoteSensors[i].capability[j]} at j=${j}"
@@ -2710,12 +2712,13 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 				if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_TEMPERATURE) {
 					// Divide the sensor temperature by 10 
 					valueInt =data.thermostatList[0].remoteSensors[i].capability[j].value.toInteger()/10
+					valueFloat = data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()/10f as float
  					remoteTempData = remoteTempData + data.thermostatList[0].remoteSensors[i].id + "," +
 						data.thermostatList[0].remoteSensors[i].name + "," +
-						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + valueInt.toString() + ",,"
-					totalTemp = totalTemp + valueInt
-					maxTemp = Math.max(valueInt,maxTemp)
-					minTemp = (minTemp==null)? valueInt: Math.min(valueInt,minTemp)
+						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + valueFloat.toString() + ",,"
+					totalTemp = totalTemp + valueFloat
+					maxTemp = Math.max(valueFloat,maxTemp)
+					minTemp = (minTemp==null)? valueInt: Math.min(valueFloat,minTemp)
 					nbTempSensorInUse++
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_HUMIDITY) {
 					remoteHumData = remoteHumData + data.thermostatList[0].remoteSensors[i].id + "," + 
@@ -2789,7 +2792,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 				def thermostatName = data.thermostatList[0].name
 				// divide the temperature by 10 before for display or calculations later.
 				data.thermostatList[0].runtime.actualTemperature = data.thermostatList[0].runtime
-					.actualTemperature / 10
+					.actualTemperature.toFloat() / 10f as Float
 				data.thermostatList[0].runtime.desiredCool = data.thermostatList[0].runtime
 					.desiredCool / 10
 				data.thermostatList[0].runtime.desiredHeat = data.thermostatList[0].runtime
