@@ -243,8 +243,8 @@ metadata {
 					[value: 59, color: "#90d2a7"],
 					[value: 74, color: "#44b621"],
 					[value: 84, color: "#f1d801"],
-					[value: 95, color: "#d04e00"],
-					[value: 96, color: "#bc2323"]
+					[value: 92, color: "#d04e00"],
+					[value: 98, color: "#bc2323"]
 				])
 		}
 		standardTile("mode", "device.thermostatMode", inactiveLabel: false,
@@ -290,9 +290,15 @@ metadata {
 			state "cool", label: '${currentValue}° cool', unit: "F", 
 			backgroundColor: "#ffffff"
 		}
-		valueTile("humidity", "device.humidity", inactiveLabel: false, 
-			decoration: "flat") {
-			state "default", label: 'Humidity\n${currentValue}%', unit: "humidity"
+//		valueTile("humidity", "device.humidity", inactiveLabel: false, 
+//			decoration: "flat") {
+//			state "default", label: 'Humidity\n${currentValue}%', unit: "humidity"
+//		}
+		valueTile("humidity", "device.humidity", inactiveLabel: false) {
+			state "humidity", label:'${currentValue}%\nhumidity', unit:"%", backgroundColors: [
+            		[value:   0, color: "#0033cc"],
+                    [value: 100, color: "#ff66ff"]
+            ]
 		}
 		standardTile("heatLevelUp", "device.heatingSetpoint", canChangeIcon: false,
 			inactiveLabel: false, decoration: "flat") {
