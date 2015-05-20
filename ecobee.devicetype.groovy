@@ -44,6 +44,9 @@ metadata {
 		capability "Actuator"
 
 		attribute "thermostatName", "string"
+		attribute "temperatureDisplay", "string"
+		attribute "coolingSetpointDisplay", "string"
+		attribute "heatingSetpointDisplay", "string"
 		attribute "heatLevelUp", "string"
 		attribute "heatLevelDown", "string"
 		attribute "coolLevelUp", "string"
@@ -63,12 +66,14 @@ metadata {
 		attribute "programType", "string"
 		attribute "programCoolTemp", "string"
 		attribute "programHeatTemp", "string"
+		attribute "programCoolTempDisplay", "string"
+		attribute "programHeatTempDisplay", "string"
 		attribute "programEndTimeMsg", "string"
 		attribute "weatherDateTime", "string"
 		attribute "weatherSymbol", "string"
 		attribute "weatherStation", "string"
 		attribute "weatherCondition", "string"
-		attribute "weatherTemperature", "string"
+		attribute "weatherTemperatureDisplay", "string"
 		attribute "weatherPressure", "string"
 		attribute "weatherRelativeHumidity", "string"
 		attribute "weatherWindSpeed", "string"
@@ -76,6 +81,8 @@ metadata {
 		attribute "weatherPop", "string"
 		attribute "weatherTempHigh", "string"
 		attribute "weatherTempLow", "string"
+		attribute "weatherTempHighDisplay", "string"
+		attribute "weatherTempLowDisplay", "string"
 		attribute "plugName", "string"
 		attribute "plugState", "string"
 		attribute "plugSettings", "string"
@@ -85,7 +92,7 @@ metadata {
 		attribute "hasHrv", "string"
 		attribute "ventilatorMinOnTime", "string"
 		attribute "ventilatorMode", "string"
-		attribute "programDisplayName", "string"
+		attribute "programNameForUI", "string"
 		attribute "thermostatOperatingState", "string"        
 		attribute "climateList", "string"	
 		attribute "modelNumber", "string"
@@ -219,12 +226,11 @@ metadata {
 			height: 1, decoration: "flat") {
 			state "default", label: '${currentValue}'
 		}
-		valueTile("temperature", "device.temperature", width: 2, height: 2,
+		valueTile("temperature", "device.temperatureDisplay", width: 2, height: 2,
 			canChangeIcon: false) {
 //		If one prefers Celsius over Farenheits, just comment out the temperature in Farenheits 
 //		and remove the comment below to have the right color scale in Celsius.
 //		This issue will be solved as soon as Smartthings supports dynamic tiles
-//		valueTile("temperature", "device.temperature", width: 2, height: 2) {
 //			state("temperature", label: '${currentValue}°', unit: "C", 
 //            		backgroundColors: [
 //					[value: 0, color: "#153591"],
@@ -265,7 +271,7 @@ metadata {
 			state "on", label: '${name}', action: "thermostat.fanAuto", 
 				icon: "st.Appliances.appliances11"
 		}
-		standardTile("switchProgram", "device.programDisplayName", 
+		standardTile("switchProgram", "device.programNameForUI", 
 			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
 			state "Home", label: '${name}', action: "sleep", 
 				icon: "st.Home.home4"
@@ -280,21 +286,18 @@ metadata {
 			state "Custom", label: 'Custom', action: "resumeThisTstat", 
 				icon: "st.Office.office6"
 		}
-		valueTile("heatingSetpoint", "device.heatingSetpoint", inactiveLabel: false,
+		valueTile("heatingSetpoint", "device.heatingSetpointDisplay", inactiveLabel: false,
 			decoration: "flat") {
 			state "heat", label: '${currentValue}° heat', unit: "F", 
 			backgroundColor: "#ffffff"
 		}
-		valueTile("coolingSetpoint", "device.coolingSetpoint", inactiveLabel: false,
+		valueTile("coolingSetpoint", "device.coolingSetpointDisplay", inactiveLabel: false,
 			decoration: "flat") {
 			state "cool", label: '${currentValue}° cool', unit: "F", 
 			backgroundColor: "#ffffff"
 		}
-//		valueTile("humidity", "device.humidity", inactiveLabel: false, 
-//			decoration: "flat") {
-//			state "default", label: 'Humidity\n${currentValue}%', unit: "humidity"
-//		}
-		valueTile("humidity", "device.humidity", inactiveLabel: false) {
+		valueTile("humidity", "device.humidity", inactiveLabel: false, 
+			decoration: "flat") {
 			state "humidity", label:'${currentValue}%\nhumidity', unit:"%", backgroundColors: [
             		[value:   0, color: "#0033cc"],
                     [value: 100, color: "#ff66ff"]
@@ -353,11 +356,11 @@ metadata {
 			height: 1, decoration: "flat") {
 			state "default", label: 'Prog Type\n${currentValue}'
 		}
-		valueTile("programCoolTemp", "device.programCoolTemp", inactiveLabel: false,
+		valueTile("programCoolTemp", "device.programCoolTempDisplay", inactiveLabel: false,
 			width: 1, height: 1, decoration: "flat") {
 			state "default", label: 'Prog Cool\n${currentValue}°'
 		}
-		valueTile("programHeatTemp", "device.programHeatTemp", inactiveLabel: false,
+		valueTile("programHeatTemp", "device.programHeatTempDisplay", inactiveLabel: false,
 			width: 1, height: 1, decoration: "flat") {
 			state "default", label: 'Prog Heat\n${currentValue}°'
 		}
@@ -401,7 +404,7 @@ metadata {
 			inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
 			state "default", label: 'Forecast\n${currentValue}'
 		}
-		valueTile("weatherTemperature", "device.weatherTemperature", inactiveLabel:
+		valueTile("weatherTemperature", "device.weatherTemperatureDisplay", inactiveLabel:
 			false, width: 1, height: 1, decoration: "flat") {
 			state "default", label: 'Out Temp\n${currentValue}°', unit: "C"
 		}
@@ -803,10 +806,15 @@ void poll() {
  		thermostatName:data.thermostatList[0].name,
 		thermostatMode:data.thermostatList[0].settings.hvacMode,
 		temperature: data.thermostatList[0].runtime.actualTemperature,
+		temperatureDisplay: data.thermostatList[0].runtime.actualTemperature,
 		humidity:data.thermostatList[0].runtime.actualHumidity,
 		coolingSetpoint: (foundEvent)? data.thermostatList[0].events[indiceEvent].coolHoldTemp: 
 			data.thermostatList[0].runtime.desiredCool,
+		coolingSetpointDisplay: (foundEvent)? data.thermostatList[0].events[indiceEvent].coolHoldTemp: 
+			data.thermostatList[0].runtime.desiredCool,
 		heatingSetpoint: (foundEvent)? data.thermostatList[0].events[indiceEvent].heatHoldTemp: 
+			data.thermostatList[0].runtime.desiredHeat,
+		heatingSetpointDisplay: (foundEvent)? data.thermostatList[0].events[indiceEvent].heatHoldTemp: 
 			data.thermostatList[0].runtime.desiredHeat,
 		modelNumber: data.thermostatList[0].modelNumber,
 		equipmentStatus:getEquipmentStatus(),
@@ -826,15 +834,19 @@ void poll() {
 		fanMinOnTime: (foundEvent)? data.thermostatList[0].events[indiceEvent].fanMinOnTime.toString() :
 			data.thermostatList[0].settings.fanMinOnTime.toString(),
 		programFanMode: (data.thermostatList[0].settings.hvacMode == 'cool')? currentClimate.coolFan : currentClimate.heatFan,
-		programDisplayName: progDisplayName,
+		programNameForUI: progDisplayName,
 		weatherStation:data.thermostatList[0].weather.weatherStation,
 		weatherSymbol:data.thermostatList[0].weather.forecasts[0].weatherSymbol.toString(),
 		weatherTemperature:data.thermostatList[0].weather.forecasts[0].temperature,
+		weatherTemperatureDisplay:data.thermostatList[0].weather.forecasts[0].temperature,
 		weatherDateTime:"Weather as of\n ${data.thermostatList[0].weather.forecasts[0].dateTime.substring(0,16)}",
 		weatherCondition:data.thermostatList[0].weather.forecasts[0].condition,
 		weatherTemp: data.thermostatList[0].weather.forecasts[0].temperature,
+		weatherTempDisplay: data.thermostatList[0].weather.forecasts[0].temperature,
 		weatherTempHigh: data.thermostatList[0].weather.forecasts[0].tempHigh, 
 		weatherTempLow: data.thermostatList[0].weather.forecasts[0].tempLow,
+		weatherTempHighDisplay: data.thermostatList[0].weather.forecasts[0].tempHigh, 
+		weatherTempLowDisplay: data.thermostatList[0].weather.forecasts[0].tempLow,
 		weatherWindSpeed: (data.thermostatList[0].weather.forecasts[0].windSpeed/1000),		// divided by 1000 for display
 		weatherPressure:data.thermostatList[0].weather.forecasts[0].pressure.toString(),
 		weatherRelativeHumidity:data.thermostatList[0].weather.forecasts[0].relativeHumidity,
@@ -842,6 +854,8 @@ void poll() {
 		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
 		programCoolTemp:(currentClimate.coolTemp / 10),										// divided by 10 for display
 		programHeatTemp:(currentClimate.heatTemp / 10),
+		programCoolTempDisplay:(currentClimate.coolTemp / 10),										// divided by 10 for display
+		programHeatTempDisplay:(currentClimate.heatTemp / 10),
 		alerts: getAlerts(),
 		groups: (ecobeeType.toUpperCase() == 'REGISTERED')? getThermostatGroups(thermostatId) : 'No groups',
 		climateList: getClimateList(),
@@ -872,35 +886,46 @@ void poll() {
 			.ventilatorMinOnTime)
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
+       
+    
     
 }
 
-private void generateEvent(Map results)
-{
+private void generateEvent(Map results) {
 	if (settings.trace) {
 		log.debug "generateEvent>parsing data $results"
 	}
+    
+    def scale = getTemperatureScale()
     
 	if(results) {
 		results.each { name, value ->
 			def isDisplayed = true
 
-// 			Temperature variable names contain 'temp' or 'setpoint'            
+// 			Temperature variable names for display contain 'display'            
 
-			if ((name.toUpperCase().contains("TEMP"))|| (name.toUpperCase().contains("SETPOINT"))) {  
-				String tempValueString
-				Double tempValue
-                
- 				def scale = getTemperatureScale()
+			if (name.toUpperCase().contains("DISPLAY")) {  
 
-// BAB Keep 1 position of precision for Fahrenheit also                
-//				if (scale == "F") {
-//					tempValue = getTemperature(value).toDouble().round()
-//					tempValueString = String.format('%2d', tempValue.intValue())            
-//				} else {
+				String tempValueString 
+				Double tempValue 
+				if (scale == "F") {
+					tempValue = getTemperature(value).toDouble().round()
+					tempValueString = String.format('%2d', tempValue.intValue())            
+				} else {
 					tempValue = getTemperature(value).toDouble().round(1)
 					tempValueString = String.format('%2.1f', tempValue)
-//				}                
+				}
+				def isChange = isTemperatureStateChange(device, name, tempValueString)
+                
+				isDisplayed = isChange
+				sendEvent(name: name, value: tempValueString, unit: scale, displayed: isDisplayed)                                     									 
+
+// 			Temperature variable names contain 'temp' or 'setpoint' (not for display)           
+
+			} else if ((name.toUpperCase().contains("TEMP"))|| (name.toUpperCase().contains("SETPOINT"))) {  
+                                
+				Double tempValue = getTemperature(value).toDouble().round(1)
+				String tempValueString = String.format('%2.1f', tempValue)
 				def isChange = isTemperatureStateChange(device, name, tempValueString)
                 
 				isDisplayed = isChange
@@ -939,7 +964,7 @@ private def getCurrentProgName() {
 	def progCurrentName = device.currentValue("programScheduleName")
 	def progType = device.currentValue("programType")
 	progType = (progType == null) ? "": progType.trim().toUpperCase()	
-	progCurrentName = (progCurrentName == null) ? "": progCurrentName.trim().toUpperCase()
+	progCurrentName = (progCurrentName == null) ? "": progCurrentName.trim()
 	if ((progCurrentName != AWAY_PROG) && (progCurrentName != SLEEP_PROG) && (
 		progCurrentName != AWAKE_PROG) &&
 		(progCurrentName != HOME_PROG) && (progCurrentName != QUICKSAVE)) {
@@ -2659,8 +2684,8 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
     
 	int nbTempSensorInUse=0
 	int nbHumSensorInUse=0
-	float totalTemp=0,totalHum=0, avgTemp=0, avgHum=0
-	int maxTemp=0, maxHum=0
+	float value,totalTemp=0,totalHum=0, avgTemp=0, avgHum=0
+	float maxTemp=0, maxHum=0
 	def minTemp=null
 	def minHum=null
     
@@ -2709,31 +2734,28 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 				}
 				remoteData << data.thermostatList[0].remoteSensors[i]  // to be transformed into Json later
 			} 
-			int valueInt
-			float valueFloat
 			for (j in 0..data.thermostatList[0].remoteSensors[i].capability.size()-1) {
 				if (settings.trace) {
 					log.debug "generateRemoteSensorEvents>looping i=${i},found ${data.thermostatList[0].remoteSensors[i].capability[j]} at j=${j}"
 				}
 				if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_TEMPERATURE) {
 					// Divide the sensor temperature by 10 
-					valueInt =data.thermostatList[0].remoteSensors[i].capability[j].value.toInteger()/10
-					valueFloat = data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()/10f as float
+					value =(data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()/10).round(1)
  					remoteTempData = remoteTempData + data.thermostatList[0].remoteSensors[i].id + "," +
 						data.thermostatList[0].remoteSensors[i].name + "," +
-						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + valueFloat.toString() + ",,"
-					totalTemp = totalTemp + valueFloat
-					maxTemp = Math.max(valueFloat,maxTemp)
-					minTemp = (minTemp==null)? valueInt: Math.min(valueFloat,minTemp)
+						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + value.toString() + ",,"
+					totalTemp = totalTemp + value
+					maxTemp = Math.max(value,maxTemp)
+					minTemp = (minTemp==null)? value: Math.min(value,minTemp)
 					nbTempSensorInUse++
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_HUMIDITY) {
 					remoteHumData = remoteHumData + data.thermostatList[0].remoteSensors[i].id + "," + 
 						data.thermostatList[0].remoteSensors[i].name + "," +
 						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
-					valueInt =data.thermostatList[0].remoteSensors[i].capability[j].value.toInteger()
-					totalHum = totalHum + valueInt
-					maxHum = Math.max(valueInt,maxHum)
-					minHum = (minHum==null)? valueInt: Math.min(valueInt,minHum)
+					value =data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()
+					totalHum = totalHum + value
+					maxHum = Math.max(value,maxHum)
+					minHum = (minHum==null)? value: Math.min(value,minHum)
 					nbHumSensorInUse++
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_OCCUPANCY) {
 					remoteOccData = remoteOccData + data.thermostatList[0].remoteSensors[i].id + "," + 
@@ -2760,7 +2782,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	if (nbHumSensorInUse >0) {
 		avgHum = totalHum / nbHumSensorInUse
 		if (settings.trace) {
-			log.debug "generateRemoteSensorEvents>avgHum for remote sensors= ${avgHum},totalTemp=${totalHum},nbHumSensors=${nbHumSensorInUse}"
+			log.debug "generateRemoteSensorEvents>avgHum for remote sensors= ${avgHum},totalHum=${totalHum},nbHumSensors=${nbHumSensorInUse}"
 		}
 		remoteSensorEvents = remoteSensorEvents + [remoteSensorHumData: "${remoteHumData.toString()}",remoteSensorAvgHumidity: avgHum,	
 			remoteSensorMinHumidity: ((minHum!=null)?minHum:0),	remoteSensorMaxHumidity: maxHum]        
@@ -2798,7 +2820,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 				def thermostatName = data.thermostatList[0].name
 				// divide the temperature by 10 before for display or calculations later.
 				data.thermostatList[0].runtime.actualTemperature = data.thermostatList[0].runtime
-					.actualTemperature.toFloat() / 10f as Float
+					.actualTemperature / 10
 				data.thermostatList[0].runtime.desiredCool = data.thermostatList[0].runtime
 					.desiredCool / 10
 				data.thermostatList[0].runtime.desiredHeat = data.thermostatList[0].runtime
