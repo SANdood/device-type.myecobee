@@ -296,8 +296,7 @@ metadata {
 			state "cool", label: '${currentValue}° cool', unit: "F", 
 			backgroundColor: "#ffffff"
 		}
-		valueTile("humidity", "device.humidity", inactiveLabel: false, 
-			decoration: "flat") {
+		valueTile("humidity", "device.humidity", inactiveLabel: false) {
 			state "humidity", label:'${currentValue}%\nhumidity', unit:"%", backgroundColors: [
             		[value:   0, color: "#0033cc"],
                     [value: 100, color: "#ff66ff"]
