@@ -38,7 +38,7 @@ preferences {
 				description: "http://github.com/yracine/device-type.myecobee/blob/master/README.md"
 		}
 		section("Select the ecobee thermostat") {
-			input "ecobee", "capability.thermostat", title: "Which ecobee thermostat?"
+			input "ecobee", "device.myEcobeeDevice", title: "Which ecobee thermostat?"
 
 		}
 		section("Polling ecobee3's remote3 sensor(s) at which interval in minutes (range=[5..59],default =30 min.)?") {
@@ -306,9 +306,9 @@ def takeAction() {
 	ecobee.generateRemoteSensorEvents("", 'false')
 	updateMotionSensors()
 	updateTempSensors()
-/*
+    
 	updateHumiditySensors()
-*/    
+	
 	log.trace "takeAction>end"
 }
 
@@ -349,12 +349,10 @@ private updateMotionSensors() {
 		def device = getChildDevice(dni)
 
 		if (device) {
-        	if (settings.trace) {
-                log.debug "updateTempSensors>ecobeeSensorId=$ecobeeSensorId"
-                log.debug "updateTempSensors>ecobeeSensorName=$ecobeeSensorName"
-				log.debug "updateTempSensors>ecobeeSensorType=$ecobeeSensorType"
-				log.debug "updateTempSensors>ecobeeSensorValue=$ecobeeSensorValue"
-            }
+			log.debug "updateTempSensors>ecobeeSensorId=$ecobeeSensorId"
+			log.debug "updateTempSensors>ecobeeSensorName=$ecobeeSensorName"
+			log.debug "updateTempSensors>ecobeeSensorType=$ecobeeSensorType"
+			log.debug "updateTempSensors>ecobeeSensorValue=$ecobeeSensorValue"
 
 			String status = (ecobeeSensorValue.contains('false')) ? "inactive" : "active"
 			def isChange = device.isStateChange(device, "motion", status)
@@ -397,8 +395,7 @@ private updateTempSensors() {
 		def ecobeeSensorId = ecobeeSensorDetails[0]
 		def ecobeeSensorName = ecobeeSensorDetails[1]
 		def ecobeeSensorType = ecobeeSensorDetails[2]
-//		int ecobeeSensorValue = ecobeeSensorDetails[3].toInteger()
-		Float ecobeeSensorValue = ecobeeSensorDetails[3].toFloat()
+		def ecobeeSensorValue = ecobeeSensorDetails[3]
 
 
 		def dni = [app.id, ecobeeSensorName, getTempSensorChildName(), ecobeeSensorId].join('.')
@@ -408,23 +405,15 @@ private updateTempSensors() {
 		def device = getChildDevice(dni)
 
 		if (device) {
-			if (settings.trace) {
-				log.debug "updateTempSensors>ecobeeSensorId= $ecobeeSensorId"
-				log.debug "updateTempSensors>ecobeeSensorName= $ecobeeSensorName"
-				log.debug "updateTempSensors>ecobeeSensorType= $ecobeeSensorType"
-				log.debug "updateTempSensors>ecobeeSensorValue= $ecobeeSensorValue"
-            }
+
+			log.debug "updateTempSensors>ecobeeSensorId= $ecobeeSensorId"
+			log.debug "updateTempSensors>ecobeeSensorName= $ecobeeSensorName"
+			log.debug "updateTempSensors>ecobeeSensorType= $ecobeeSensorType"
+			log.debug "updateTempSensors>ecobeeSensorValue= $ecobeeSensorValue"
             
-			Double tempValue
-			String tempValueString
             
-//			if (scale == "F") {
-//				tempValue = getTemperature(ecobeeSensorValue).toDouble().round()
-//				tempValueString = String.format('%2d', tempValue.intValue())            
-//			} else {
-				tempValue = getTemperature(ecobeeSensorValue).toDouble().round(1)
-				tempValueString = String.format('%2.1f', tempValue)
-//			}                
+			Double tempValue = getTemperature(ecobeeSensorValue).toDouble().round(1)
+			String tempValueString = String.format('%2.1f', tempValue)
 
 			def isChange = device.isTemperatureStateChange(device, "temperature", tempValueString)
 			def isDisplayed = isChange
@@ -464,7 +453,7 @@ private updateHumiditySensors() {
 		def ecobeeSensorId = ecobeeSensorDetails[0]
 		def ecobeeSensorName = ecobeeSensorDetails[1]
 		def ecobeeSensorType = ecobeeSensorDetails[2]
-		int ecobeeSensorValue = ecobeeSensorDetails[3].toInteger()
+		def ecobeeSensorValue = ecobeeSensorDetails[3]
 
 
 		def dni = [app.id, ecobeeSensorName, getTempSensorChildName(), ecobeeSensorId].join('.')
@@ -474,15 +463,15 @@ private updateHumiditySensors() {
 		def device = getChildDevice(dni)
 
 		if (device) {
-			if (settings.trace) {
-				log.debug "updateHumiditySensors>ecobeeSensorId= $ecobeeSensorId"
-				log.debug "updateHumiditySensors>ecobeeSensorName= $ecobeeSensorName"
-				log.debug "updateHumiditySensors>ecobeeSensorType= $ecobeeSensorType"
-				log.debug "updateHumiditySensors>ecobeeSensorValue= $ecobeeSensorValue"
-            }
+
+			log.debug "updateHumiditySensors>ecobeeSensorId= $ecobeeSensorId"
+			log.debug "updateHumiditySensors>ecobeeSensorName= $ecobeeSensorName"
+			log.debug "updateHumiditySensors>ecobeeSensorType= $ecobeeSensorType"
+			log.debug "updateHumiditySensors>ecobeeSensorValue= $ecobeeSensorValue"
+            
             
 			Double humValue = ecobeeSensorValue.toDouble().round()
-			String humValueString=humValue.toString()             
+			String humValueString = String.format('%2d', humValue.intValue())
 
 			def isChange = device.isStateChange(device, "humidity", humValueString)
 			def isDisplayed = isChange
