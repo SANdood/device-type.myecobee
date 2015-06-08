@@ -1363,6 +1363,7 @@ void setThermostatSettings(thermostatId,tstatSettings = []) {
 			} /* end if statusCode */
 		} /* end api call */                
 	} /* end for */
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // iterateSetHold: iterate thru all the thermostats under a specific account and create the hold event
@@ -1490,6 +1491,7 @@ void setHoldExtraParams(thermostatId, coolingSetPoint, heatingSetPoint, fanMode,
 		} /* end api call */
         
 	}/* end while */
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // iterateCreateVacation: iterate thru all the thermostats under a specific account and create the vacation
@@ -1583,6 +1585,7 @@ void createVacation(thermostatId, vacationName, targetCoolTemp, targetHeatTemp,
 				"createVacation>error ${statusCode.toString()} for ${thermostatId}"
 		}
 	}
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // iterateDeleteVacation: iterate thru all the thermostats under a specific account and delete the vacation
@@ -1651,6 +1654,7 @@ void deleteVacation(thermostatId, vacationName) {
 				"deleteVacation>error ${statusCode.toString()} for ${thermostatId}"
 		}
 	}
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // tstatType =managementSet or registered (no spaces).  May also be set to a specific locationSet (ex./Toronto/Campus/BuildingA)
@@ -1715,7 +1719,6 @@ void resumeProgram(thermostatId=settings.thermostatId) {
 			sendEvent name: "verboseTrace", value:
 				"resumeProgram> 2nd done for ${thermostatId}"
 		}
-	
 	}
 	api('resumeProgram', bodyReq) {resp ->
 		def statusCode = resp.data.status.code
@@ -1732,6 +1735,7 @@ void resumeProgram(thermostatId=settings.thermostatId) {
 				"resumeProgram>error=${statusCode.toString()} for ${thermostatId}"
 		}
 	}
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -1794,6 +1798,7 @@ def getGroups(thermostatId) {
 				"getGroups>error ${statusCode.toString()} for ${thermostatId}"
 		}
 	}
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -1887,6 +1892,7 @@ void updateGroup(groupRef, groupName, thermostatId, groupSettings = []) {
 		} /* end api call */                
                         
 	} /* end while */
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -1925,6 +1931,7 @@ void deleteGroup(groupRef, groupName) {
 				"deteteGroup>error ${statusCode.toString()} for ${groupName},groupRef = ${groupRef}"
 		}
 	}
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -2054,7 +2061,8 @@ void setClimate(thermostatId, climateName, paramsMap=[]) {
 				} /* end if statusCode */
 			} /* end api call */                   
 		} /* end while */               
-	} /* end for */    
+	} /* end for */  
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 // iterateUpdateClimate: iterate thru all the thermostats under a specific account and update their Climate
 // tstatType =managementSet or registered (no spaces).  May also be set to a specific locationSet (ex./Toronto/Campus/BuildingA)
@@ -2311,6 +2319,7 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
 			} /* end if statusCode */
 		} /* end api call */               
 	} /* end while */
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 // thermostatId shall refer to a single thermostat to avoid processing too much data
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
@@ -2462,6 +2471,7 @@ void getReportData(thermostatId, startDateTime, endDateTime, startInterval, endI
 			} /* end if statusCode */
 		} /* end api call */                
 	} /* end while */
+	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 private int get_interval(Date dateTime) {
@@ -2726,7 +2736,8 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 			}
 			return
 		}
-		getThermostatInfo(thermostatId)    
+//		getThermostatInfo(thermostatId)   
+		poll()
 	}
 	thermostatId = determine_tstat_id(thermostatId)
 
@@ -2965,6 +2976,7 @@ void getThermostatSummary(tstatType) {
 			} /* end if statusCode */
 		}  /* end api call */              
 	} /* end while */
+	state.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 // poll() or getThermostatInfo() must be called prior to calling the getModelNumber() method 
 // Return thermostat's current Model Number */
