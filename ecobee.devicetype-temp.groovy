@@ -99,6 +99,7 @@ metadata {
 		attribute "followMeComfort", "string"
 		attribute "autoAway", "string"
 		attribute "thermostatRevision", "string"
+		attribute "runtimeRevision", "string"
 		attribute "heatStages", "string"
 		attribute "coolStages", "string"
 		attribute "climateName", "string"
@@ -573,7 +574,8 @@ def fanCirculate() {
 	setFanMinOnTime(15)	// Set a minimum of 15 minutes of fan per hour
 }
 void setThermostatFanMode(mode) {
-	def thermostatId= determine_tstat_id("") 	    
+	def thermostatId= determine_tstat_id("") 
+	mode = (mode == 'off') ? 'auto' : mode
 	setHold(thermostatId, device.currentValue("coolingSetpoint"), device
 		.currentValue("heatingSetpoint"),
 		mode, null)
@@ -752,11 +754,13 @@ void poll() {
 		if (settings.trace) {
 			log.debug "poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
 			sendEvent name: "verboseTrace", value:
-				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimeStamp (${state.lastPollTimestamp}), not refreshing data..."
+				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
     	}
+    	log.info 'poll() skipped'
 		return
 	}
 	state.lastPollTimestamp = now()
+	log.info 'poll()'
 	getThermostatInfo(thermostatId)
 
 	// determine if there is an event running
@@ -2372,7 +2376,20 @@ void getReportData(thermostatId, startDateTime, endDateTime, startInterval, endI
 		log.debug "getReportData> startDate in UTC timezone =${String.format('%tF %<tT',startDateTime)}," +
         	"endDate in UTC timezone =${String.format('%tF %<tT',endDateTime)}"
 	}
+// Check the thermostat Revision in order to avoid polling ecobee servers unnecessarily 
+    
+	getThermostatRevision("", thermostatId)
+	def newRevision = device.currentValue('thermostatRevision')
+	if (settings.trace) {
+		log.debug ("getReportData>thermostatRevision=${state?.thermostatRevision},newRevision=${newRevision}...")
+	}
+	if ((state?.thermostatRevision != null) && (state?.thermostatRevision == newRevision)) {
 
+		return
+	
+	}
+	state?.thermostatRevision = newRevision
+    
 	beginInt = (startInterval == null)? get_interval(startDateTime): startInterval.toInteger()
 	endInt = (endInterval == null)? get_interval(endDateTime): endInterval.toInteger()
 	Calendar startCalendar = startDateTime.toCalendar()
@@ -2706,8 +2723,8 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 			if (settings.trace) {
 				sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
 				log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
-				return
-			}                
+			}
+			return
 		}
 		getThermostatInfo(thermostatId)    
 	}
@@ -2893,11 +2910,13 @@ def getThermostatRevision(tstatType, thermostatId) {
 		def id = thermostatDetails[0]
 		def thermostatName = thermostatDetails[1]
 		def connected = thermostatDetails[2]
+		def runtimeRevision = thermostatDetails[5]
 		def internalRevision = thermostatDetails[6]
 		if (thermostatId == id) {
+			sendEvent name: "runtimeRevision", value: runtimeRevision
 			sendEvent name: "thermostatRevision", value: internalRevision
 			if (settings.trace) {	
-				log.debug "getThermostatRevision> done for ${thermostatId}, thermostatRevision=$internalRevision"
+				log.debug "getThermostatRevision> done for ${thermostatId}, thermostatRevision=$internalRevision, runtimeRevision=$runtimeRevision"
 			}
 			return
 		}
