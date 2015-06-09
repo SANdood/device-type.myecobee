@@ -747,20 +747,20 @@ void poll() {
     
 	def thermostatId= determine_tstat_id("") 	    
 
-	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
-	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
-	
-	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
-		if (settings.trace) {
-			log.debug "poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-			sendEvent name: "verboseTrace", value:
-				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-    	}
-    	log.info 'poll() skipped'
-		return
-	}
-	state.lastPollTimestamp = now()
-	log.info 'poll()'
+//	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
+//	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
+//	
+//	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
+//		if (settings.trace) {
+//			log.debug "poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+//			sendEvent name: "verboseTrace", value:
+//				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+//    	}
+//    	log.info 'poll() skipped'
+//		return
+//	}
+//	state.lastPollTimestamp = now()
+//	log.info 'poll()'
 	getThermostatInfo(thermostatId)
 
 	// determine if there is an event running
@@ -1363,7 +1363,7 @@ void setThermostatSettings(thermostatId,tstatSettings = []) {
 			} /* end if statusCode */
 		} /* end api call */                
 	} /* end for */
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // iterateSetHold: iterate thru all the thermostats under a specific account and create the hold event
@@ -1491,7 +1491,7 @@ void setHoldExtraParams(thermostatId, coolingSetPoint, heatingSetPoint, fanMode,
 		} /* end api call */
         
 	}/* end while */
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // iterateCreateVacation: iterate thru all the thermostats under a specific account and create the vacation
@@ -1585,7 +1585,7 @@ void createVacation(thermostatId, vacationName, targetCoolTemp, targetHeatTemp,
 				"createVacation>error ${statusCode.toString()} for ${thermostatId}"
 		}
 	}
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // iterateDeleteVacation: iterate thru all the thermostats under a specific account and delete the vacation
@@ -1654,7 +1654,7 @@ void deleteVacation(thermostatId, vacationName) {
 				"deleteVacation>error ${statusCode.toString()} for ${thermostatId}"
 		}
 	}
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // tstatType =managementSet or registered (no spaces).  May also be set to a specific locationSet (ex./Toronto/Campus/BuildingA)
@@ -1798,7 +1798,7 @@ def getGroups(thermostatId) {
 				"getGroups>error ${statusCode.toString()} for ${thermostatId}"
 		}
 	}
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -1892,7 +1892,7 @@ void updateGroup(groupRef, groupName, thermostatId, groupSettings = []) {
 		} /* end api call */                
                         
 	} /* end while */
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -1931,7 +1931,7 @@ void deleteGroup(groupRef, groupName) {
 				"deteteGroup>error ${statusCode.toString()} for ${groupName},groupRef = ${groupRef}"
 		}
 	}
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
@@ -2319,7 +2319,7 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
 			} /* end if statusCode */
 		} /* end api call */               
 	} /* end while */
-	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 // thermostatId shall refer to a single thermostat to avoid processing too much data
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
@@ -2736,8 +2736,8 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 			}
 			return
 		}
-//		getThermostatInfo(thermostatId)   
-		poll()
+		getThermostatInfo(thermostatId)   
+//		poll()
 	}
 	thermostatId = determine_tstat_id(thermostatId)
 
@@ -2841,6 +2841,22 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 // thermostatId may be a list of serial# separated by ",", no spaces (ex. '123456789012,123456789013') 
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
 void getThermostatInfo(thermostatId=settings.thermostatId) {
+	
+	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
+	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
+	
+	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
+		if (settings.trace) {
+			log.debug "getThermostatInfo>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+			sendEvent name: "verboseTrace", value:
+				"getThermostatInfo>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+    	}
+    	log.info 'getThermostatInfo() skipped'
+		return
+	}
+	state.lastPollTimestamp = now()
+	log.info 'getThermostatInfo()'
+	
 	if (settings.trace) {
 		log.debug "getThermostatInfo> about to call build_body_request for thermostatId = ${thermostatId}..."
 	}
@@ -2976,7 +2992,7 @@ void getThermostatSummary(tstatType) {
 			} /* end if statusCode */
 		}  /* end api call */              
 	} /* end while */
-	state.lastPollTimestamp = now()		// Throttle the next call to poll()
+//	state.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 // poll() or getThermostatInfo() must be called prior to calling the getModelNumber() method 
 // Return thermostat's current Model Number */
