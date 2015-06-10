@@ -1211,7 +1211,8 @@ private void doRequest(uri, args, type, success) {
 		sendEvent name: "verboseTrace", value: "doRequest> No route to host"
 		state.exceptionCount++  
   	} catch (javax.net.ssl.SSLHandshakeException e) {
-    	log.error "refresh_tokens> SSL Handshake Exception : " + params.uri
+    	log.error "doRequest> SSL Handshake Exception : " + params.uri
+    	sendEvet name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
         state.exceptionCount++
 	} catch (e) {
 		log.debug "doRequest>exception $e, ${e.getMessage()} for " + params.body
@@ -3063,6 +3064,7 @@ private def refresh_tokens() {
 		return false
 	} catch (javax.net.ssl.SSLHandshakeException e) {
     	log.error "refresh_tokens> SSL Handshake Exception : " + method.uri
+    	sendEvent name: "verboseTrace", value: "refresh_tokens> SSL Handshake Exception"
         state.exceptionCount++
         return false
     } catch (e) {
