@@ -1711,33 +1711,19 @@ void resumeProgram(thermostatId=settings.thermostatId) {
 	thermostatId = determine_tstat_id(thermostatId)
 	def tstatSettings = [resumeAll: 'true']
 	def bodyReq = build_body_request('resumeProgram',null,thermostatId,tstatSettings)
-//	if (settings.trace) {
+	if (settings.trace) {
 		log.debug "resumeProgram> about to call api with body = ${bodyReq} for ${thermostatId}"
-//	}
-	// do the resumeProgram 3 times to make sure it is resumed.
-//	api('resumeProgram', bodyReq) {
-//		if (settings.trace) {
-//			log.debug "resumeProgram> 1st done for ${thermostatId}"
-//			sendEvent name: "verboseTrace", value:
-//				"resumeProgram> 1st done for ${thermostatId}"
-//		}
-//	}
-//	api('resumeProgram', bodyReq) {
-//		if (settings.trace) {
-//			log.debug "resumeProgram> 2nd done for ${thermostatId}"
-//			sendEvent name: "verboseTrace", value:
-//				"resumeProgram> 2nd done for ${thermostatId}"
-//		}
-//	}
+	}
+	// do the resumeProgram once with resumeAll: true to clear the entire event queue.
 	api('resumeProgram', bodyReq) {resp ->
 		def statusCode = resp.data.status.code
 		def message = resp.data.status.message
 		if (!statusCode) {
-//			if (settings.trace) {
+			if (settings.trace) {
 				log.debug "resumeProgram> resumeAll done for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
 					"resumeProgram> resumeAll done for ${thermostatId}"
-//			}
+			}
 		} else {
 			log.error "resumeProgram>error=${statusCode.toString()}, message = ${message}"
 			sendEvent name: "verboseTrace", value:
