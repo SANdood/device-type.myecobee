@@ -1709,41 +1709,41 @@ void iterateResumeProgram(tstatType) {
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
 void resumeProgram(thermostatId=settings.thermostatId) {  
 	thermostatId = determine_tstat_id(thermostatId)
-	def bodyReq = build_body_request('resumeProgram',null,thermostatId,null)
-	if (settings.trace) {
+	def tstatSettings = [resumeAll: 'true']
+	def bodyReq = build_body_request('resumeProgram',null,thermostatId,tstatSettings)
+//	if (settings.trace) {
 		log.debug "resumeProgram> about to call api with body = ${bodyReq} for ${thermostatId}"
-	}
+//	}
 	// do the resumeProgram 3 times to make sure it is resumed.
-	api('resumeProgram', bodyReq) {
-		if (settings.trace) {
-			log.debug "resumeProgram> 1st done for ${thermostatId}"
-			sendEvent name: "verboseTrace", value:
-				"resumeProgram> 1st done for ${thermostatId}"
-		}
-	}
-	api('resumeProgram', bodyReq) {
-		if (settings.trace) {
-			log.debug "resumeProgram> 2nd done for ${thermostatId}"
-			sendEvent name: "verboseTrace", value:
-				"resumeProgram> 2nd done for ${thermostatId}"
-		}
-	}
+//	api('resumeProgram', bodyReq) {
+//		if (settings.trace) {
+//			log.debug "resumeProgram> 1st done for ${thermostatId}"
+//			sendEvent name: "verboseTrace", value:
+//				"resumeProgram> 1st done for ${thermostatId}"
+//		}
+//	}
+//	api('resumeProgram', bodyReq) {
+//		if (settings.trace) {
+//			log.debug "resumeProgram> 2nd done for ${thermostatId}"
+//			sendEvent name: "verboseTrace", value:
+//				"resumeProgram> 2nd done for ${thermostatId}"
+//		}
+//	}
 	api('resumeProgram', bodyReq) {resp ->
 		def statusCode = resp.data.status.code
 		def message = resp.data.status.message
 		if (!statusCode) {
-			if (settings.trace) {
-				log.debug "resumeProgram> final resume done for ${thermostatId}"
+//			if (settings.trace) {
+				log.debug "resumeProgram> resumeAll done for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"resumeProgram> final resume done for ${thermostatId}"
-			}
+					"resumeProgram> resumeAll done for ${thermostatId}"
+//			}
 		} else {
 			log.error "resumeProgram>error=${statusCode.toString()}, message = ${message}"
 			sendEvent name: "verboseTrace", value:
 				"resumeProgram>error=${statusCode.toString()} for ${thermostatId}"
 		}
 	}
-//	state?.lastPollTimestamp = now()		// Throttle the next call to poll()
 }
 
 // Only valid for Smart and ecobee3 thermostats (not for EMS)
