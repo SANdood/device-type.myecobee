@@ -745,7 +745,8 @@ def parse(String description) {
 void poll() {
 	def tstatId,ecobeeType
     
-	def thermostatId= determine_tstat_id("") 	    
+	def thermostatId= determine_tstat_id("")
+    log.trace 'poll()'
 
 //	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
 //	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
@@ -762,6 +763,7 @@ void poll() {
 //	state.lastPollTimestamp = now()
 //	log.info 'poll()'
 	getThermostatInfo(thermostatId)
+    log.trace 'gTI() returned'
 
 	// determine if there is an event running
     
@@ -884,7 +886,10 @@ void poll() {
 	if (foundEvent && (data.thermostatList[0]?.events[indiceEvent]?.type == 'quickSave')) {
 		dataEvents.programEndTimeMsg ="Quicksave running"
 	}
+    log.trace 'calling generateEvent()'
 	generateEvent(dataEvents)
+    log.trace 'gE() done'
+    
 	if (data.thermostatList[0].settings.hasHumidifier) {
 		sendEvent(name: 'humidifierMode', value: data.thermostatList[0].settings.humidifierMode)
 		sendEvent(name: 'humidifierLevel', value: data.thermostatList[0].settings.humidity,
@@ -902,7 +907,7 @@ void poll() {
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
        
-    
+    log.trace 'end poll()'
     
 }
 
@@ -1204,7 +1209,10 @@ private void doRequest(uri, args, type, success) {
 	} catch (java.net.NoRouteToHostException e) {
 		log.error "doRequest> No route to host - check the URL " + params.uri
 		sendEvent name: "verboseTrace", value: "doRequest> No route to host"
-		state.exceptionCount++        
+		state.exceptionCount++  
+  	} catch (javax.net.ssl.SSLHandshakeException e) {
+    	log.error "refresh_tokens> SSL Handshake Exception : " + params.uri
+        state.exceptionCount++
 	} catch (e) {
 		log.debug "doRequest>exception $e, ${e.getMessage()} for " + params.body
 		sendEvent name: "verboseTrace", value:
@@ -2915,7 +2923,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 						"desiredDehumidity=${runtimeSettings.desiredDehumidity},dehumidifierMode=${thermostatSettings.dehumidifierMode}"
 				}
 			} else {
-				log.error "getThermostatInfo> error=${statusCode.toString()}, message = ${message}"
+				log.error "getThermostatInfo> error=${statusCode.toString()} - ${statusCode}, message = ${message}"
 				sendEvent name: "verboseTrace", value:
 					"getTstatInfo>error=${statusCode} for ${thermostatId}"
 			} /* end if statusCode */                 
@@ -3053,7 +3061,11 @@ private def refresh_tokens() {
 		sendEvent name: "verboseTrace", value: "refresh_tokens> No route to host"
 		state.exceptionCount++        
 		return false
-	} catch (e) {
+	} catch (javax.net.ssl.SSLHandshakeException e) {
+    	log.error "refresh_tokens> SSL Handshake Exception : " + method.uri
+        state.exceptionCount++
+        return false
+    } catch (e) {
 		log.debug "refresh_tokens>exception $e, ${e.getMessage()} at " + method.uri
 		sendEvent name: "verboseTrace", value:
 			"refresh_tokens>exception $e, ${e.getMessage()} at " + method.uri
