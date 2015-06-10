@@ -69,20 +69,20 @@ metadata {
 		attribute "programCoolTempDisplay", "string"
 		attribute "programHeatTempDisplay", "string"
 		attribute "programEndTimeMsg", "string"
-		attribute "weatherDateTime", "string"
-		attribute "weatherSymbol", "string"
-		attribute "weatherStation", "string"
-		attribute "weatherCondition", "string"
-		attribute "weatherTemperatureDisplay", "string"
-		attribute "weatherPressure", "string"
-		attribute "weatherRelativeHumidity", "string"
-		attribute "weatherWindSpeed", "string"
-		attribute "weatherWindDirection", "string"
-		attribute "weatherPop", "string"
-		attribute "weatherTempHigh", "string"
-		attribute "weatherTempLow", "string"
-		attribute "weatherTempHighDisplay", "string"
-		attribute "weatherTempLowDisplay", "string"
+//		attribute "weatherDateTime", "string"
+//		attribute "weatherSymbol", "string"
+//		attribute "weatherStation", "string"
+//		attribute "weatherCondition", "string"
+//		attribute "weatherTemperatureDisplay", "string"
+//		attribute "weatherPressure", "string"
+//		attribute "weatherRelativeHumidity", "string"
+//		attribute "weatherWindSpeed", "string"
+//		attribute "weatherWindDirection", "string"
+//		attribute "weatherPop", "string"
+//		attribute "weatherTempHigh", "string"
+//		attribute "weatherTempLow", "string"
+//		attribute "weatherTempHighDisplay", "string"
+//		attribute "weatherTempLowDisplay", "string"
 		attribute "plugName", "string"
 		attribute "plugState", "string"
 		attribute "plugSettings", "string"
@@ -370,72 +370,72 @@ metadata {
             		icon: "st.Office.office7", backgroundColor: "#ffffff"
 		}
 		// Weather Tiles
-		standardTile("weatherIcon", "device.weatherSymbol", inactiveLabel: false, width: 1, height: 1,
-			decoration: "flat") {
-			state "-2",			label: 'updating...',		icon: "st.unknown.unknown.unknown"
-			state "0",			label: 'Sunny',			icon: "st.Weather.weather14"
-			state "1",			label: 'FewClouds',		icon: "st.Weather.weather15"
-			state "2",			label: 'PartlyCloudy',		icon: "st.Weather.weather15"
-			state "3",			label: 'MostlyCloudy',		icon: "st.Weather.weather15"
-			state "4",			label: 'Overcast',		icon: "st.Weather.weather13"
-			state "5",			label: 'Drizzle',		icon: "st.Weather.weather9"
-			state "6",			label: 'Rain',			icon: "st.Weather.weather10"
-			state "7",			label: 'FreezingRain',		icon: "st.Weather.weather10"
-			state "8",			label: 'Showers',		icon: "st.Weather.weather10"
-			state "9",			label: 'Hail',			icon: "st.custom.wuk.sleet"
-			state "10",			label: 'Snow',			icon: "st.Weather.weather6"
-			state "11",			label: 'Flurries',		icon: "st.Weather.weather6"
-			state "12",			label: 'Sleet',			icon: "st.Weather.weather6"
-			state "13",			label: 'Blizzard',		icon: "st.Weather.weather7"
-			state "14",			label: 'Pellets',		icon: "st.custom.wuk.sleet"
-			state "15",			label: 'ThunderStorms',		icon: "st.custom.wuk.tstorms"
-			state "16",			label: 'Windy',			icon: "st.Transportation.transportation5"
-			state "17",			label: 'Tornado',		icon: "st.Weather.weather1"
-			state "18",			label: 'Fog',			icon: "st.Weather.weather13"
-			state "19",			label: 'Hazy',			icon: "st.Weather.weather13"
-			state "20",			label: 'Smoke',			icon: "st.Weather.weather13"
-			state "21",			label: 'Dust',			icon: "st.Weather.weather13"
-		}
-		valueTile("weatherDateTime", "device.weatherDateTime", inactiveLabel: false,
-			width: 2, height: 1, decoration: "flat") {
-			state "default", label: '${currentValue}'
-		}
-		valueTile("weatherConditions", "device.weatherCondition", 
-			inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
-			state "default", label: 'Forecast\n${currentValue}'
-		}
-		valueTile("weatherTemperature", "device.weatherTemperatureDisplay", inactiveLabel:
-			false, width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'Out Temp\n${currentValue}°', unit: "C"
-		}
-		valueTile("weatherRelativeHumidity", "device.weatherRelativeHumidity",
-			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'Out Hum\n${currentValue}%', unit: "humidity"
-		}
-		valueTile("weatherTempHigh", "device.weatherTempHigh", inactiveLabel: false,
-			width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'FcastHigh\n${currentValue}°', unit: "C"
-		}
-		valueTile("weatherTempLow", "device.weatherTempLow", inactiveLabel: false,
-			width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'FcastLow\n${currentValue}°', unit: "C"
-		}
-		valueTile("weatherPressure", "device.weatherPressure", inactiveLabel: false,
-			width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'Pressure\n${currentValue}', unit: "hpa"
-		}
-		valueTile("weatherWindDirection", "device.weatherWindDirection",
-			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'W.Dir\n${currentValue}'
-		}
-		valueTile("weatherWindSpeed", "device.weatherWindSpeed", inactiveLabel: false,
-			width: 1, height: 1, decoration: "flat") {
-			state "default", label: 'W.Speed\n${currentValue}'
-		}
-		valueTile("weatherPop", "device.weatherPop", inactiveLabel: false, width: 1,
-			height: 1, decoration: "flat") {
-			state "default", label: 'PoP\n${currentValue}%', unit: "%"
-		}
+//		standardTile("weatherIcon", "device.weatherSymbol", inactiveLabel: false, width: 1, height: 1,
+//			decoration: "flat") {
+//			state "-2",			label: 'updating...',		icon: "st.unknown.unknown.unknown"
+//			state "0",			label: 'Sunny',			icon: "st.Weather.weather14"
+//			state "1",			label: 'FewClouds',		icon: "st.Weather.weather15"
+//			state "2",			label: 'PartlyCloudy',		icon: "st.Weather.weather15"
+//			state "3",			label: 'MostlyCloudy',		icon: "st.Weather.weather15"
+//			state "4",			label: 'Overcast',		icon: "st.Weather.weather13"
+//			state "5",			label: 'Drizzle',		icon: "st.Weather.weather9"
+//			state "6",			label: 'Rain',			icon: "st.Weather.weather10"
+//			state "7",			label: 'FreezingRain',		icon: "st.Weather.weather10"
+//			state "8",			label: 'Showers',		icon: "st.Weather.weather10"
+//			state "9",			label: 'Hail',			icon: "st.custom.wuk.sleet"
+//			state "10",			label: 'Snow',			icon: "st.Weather.weather6"
+//			state "11",			label: 'Flurries',		icon: "st.Weather.weather6"
+//			state "12",			label: 'Sleet',			icon: "st.Weather.weather6"
+//			state "13",			label: 'Blizzard',		icon: "st.Weather.weather7"
+//			state "14",			label: 'Pellets',		icon: "st.custom.wuk.sleet"
+//			state "15",			label: 'ThunderStorms',		icon: "st.custom.wuk.tstorms"
+//			state "16",			label: 'Windy',			icon: "st.Transportation.transportation5"
+//			state "17",			label: 'Tornado',		icon: "st.Weather.weather1"
+//			state "18",			label: 'Fog',			icon: "st.Weather.weather13"
+//			state "19",			label: 'Hazy',			icon: "st.Weather.weather13"
+//			state "20",			label: 'Smoke',			icon: "st.Weather.weather13"
+//			state "21",			label: 'Dust',			icon: "st.Weather.weather13"
+//		}
+//		valueTile("weatherDateTime", "device.weatherDateTime", inactiveLabel: false,
+//			width: 2, height: 1, decoration: "flat") {
+//			state "default", label: '${currentValue}'
+//		}
+//		valueTile("weatherConditions", "device.weatherCondition", 
+//			inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
+//			state "default", label: 'Forecast\n${currentValue}'
+//		}
+//		valueTile("weatherTemperature", "device.weatherTemperatureDisplay", inactiveLabel:
+//			false, width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'Out Temp\n${currentValue}°', unit: "C"
+//		}
+//		valueTile("weatherRelativeHumidity", "device.weatherRelativeHumidity",
+//			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'Out Hum\n${currentValue}%', unit: "humidity"
+//		}
+//		valueTile("weatherTempHigh", "device.weatherTempHigh", inactiveLabel: false,
+//			width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'FcastHigh\n${currentValue}°', unit: "C"
+//		}
+//		valueTile("weatherTempLow", "device.weatherTempLow", inactiveLabel: false,
+//			width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'FcastLow\n${currentValue}°', unit: "C"
+//		}
+//		valueTile("weatherPressure", "device.weatherPressure", inactiveLabel: false,
+//			width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'Pressure\n${currentValue}', unit: "hpa"
+//		}
+//		valueTile("weatherWindDirection", "device.weatherWindDirection",
+//			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'W.Dir\n${currentValue}'
+//		}
+//		valueTile("weatherWindSpeed", "device.weatherWindSpeed", inactiveLabel: false,
+//			width: 1, height: 1, decoration: "flat") {
+//			state "default", label: 'W.Speed\n${currentValue}'
+//		}
+//		valueTile("weatherPop", "device.weatherPop", inactiveLabel: false, width: 1,
+//			height: 1, decoration: "flat") {
+//			state "default", label: 'PoP\n${currentValue}%', unit: "%"
+//		}
 		standardTile("refresh", "device.thermostatMode", inactiveLabel: false,
 			decoration: "flat") {
 			state "default", action: "polling.poll", icon: "st.secondary.refresh"
@@ -447,10 +447,10 @@ metadata {
 			"equipStatus", "programEndTimeMsg", "humidity", "alerts",
 			"fanMinOnTime", "programScheduleName", "programType", "programCoolTemp",
 			"programHeatTemp", "resProgram",
-			"weatherIcon", "weatherDateTime", "weatherConditions",
+/*			"weatherIcon", "weatherDateTime", "weatherConditions",
 			"weatherTemperature", "weatherRelativeHumidity", "weatherTempHigh",
 			"weatherTempLow", "weatherPressure", "weatherWindDirection",
-			"weatherWindSpeed", "weatherPop", "refresh",
+			"weatherWindSpeed", "weatherPop", */ "refresh",
 		])
 	}
 }
@@ -852,23 +852,23 @@ void poll() {
 			data.thermostatList[0].settings.fanMinOnTime.toString(),
 		programFanMode: (data.thermostatList[0].settings.hvacMode == 'cool')? currentClimate.coolFan : currentClimate.heatFan,
 		programNameForUI: progDisplayName,
-		weatherStation:data.thermostatList[0].weather.weatherStation,
-		weatherSymbol:data.thermostatList[0].weather.forecasts[0].weatherSymbol.toString(),
-		weatherTemperature:data.thermostatList[0].weather.forecasts[0].temperature,
-		weatherTemperatureDisplay:data.thermostatList[0].weather.forecasts[0].temperature,
-		weatherDateTime:"Weather as of\n ${data.thermostatList[0].weather.forecasts[0].dateTime.substring(0,16)}",
-		weatherCondition:data.thermostatList[0].weather.forecasts[0].condition,
-		weatherTemp: data.thermostatList[0].weather.forecasts[0].temperature,
-		weatherTempDisplay: data.thermostatList[0].weather.forecasts[0].temperature,
-		weatherTempHigh: data.thermostatList[0].weather.forecasts[0].tempHigh, 
-		weatherTempLow: data.thermostatList[0].weather.forecasts[0].tempLow,
-		weatherTempHighDisplay: data.thermostatList[0].weather.forecasts[0].tempHigh, 
-		weatherTempLowDisplay: data.thermostatList[0].weather.forecasts[0].tempLow,
-		weatherWindSpeed: (data.thermostatList[0].weather.forecasts[0].windSpeed/1000),		// divided by 1000 for display
-		weatherPressure:data.thermostatList[0].weather.forecasts[0].pressure.toString(),
-		weatherRelativeHumidity:data.thermostatList[0].weather.forecasts[0].relativeHumidity,
-		weatherWindDirection:data.thermostatList[0].weather.forecasts[0].windDirection + " Winds",
-		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
+//		weatherStation:data.thermostatList[0].weather.weatherStation,
+//		weatherSymbol:data.thermostatList[0].weather.forecasts[0].weatherSymbol.toString(),
+//		weatherTemperature:data.thermostatList[0].weather.forecasts[0].temperature,
+//		weatherTemperatureDisplay:data.thermostatList[0].weather.forecasts[0].temperature,
+//		weatherDateTime:"Weather as of\n ${data.thermostatList[0].weather.forecasts[0].dateTime.substring(0,16)}",
+//		weatherCondition:data.thermostatList[0].weather.forecasts[0].condition,
+//		weatherTemp: data.thermostatList[0].weather.forecasts[0].temperature,
+//		weatherTempDisplay: data.thermostatList[0].weather.forecasts[0].temperature,
+//		weatherTempHigh: data.thermostatList[0].weather.forecasts[0].tempHigh, 
+//		weatherTempLow: data.thermostatList[0].weather.forecasts[0].tempLow,
+//		weatherTempHighDisplay: data.thermostatList[0].weather.forecasts[0].tempHigh, 
+//		weatherTempLowDisplay: data.thermostatList[0].weather.forecasts[0].tempLow,
+//		weatherWindSpeed: (data.thermostatList[0].weather.forecasts[0].windSpeed/1000),		// divided by 1000 for display
+//		weatherPressure:data.thermostatList[0].weather.forecasts[0].pressure.toString(),
+//		weatherRelativeHumidity:data.thermostatList[0].weather.forecasts[0].relativeHumidity,
+//		weatherWindDirection:data.thermostatList[0].weather.forecasts[0].windDirection + " Winds",
+//		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
 		programCoolTemp:(currentClimate.coolTemp / 10),										// divided by 10 for display
 		programHeatTemp:(currentClimate.heatTemp / 10),
 		programCoolTempDisplay:(currentClimate.coolTemp / 10),										// divided by 10 for display
@@ -1255,7 +1255,7 @@ private def build_body_request(method, tstatType="registered", thermostatId, tst
 			includeSettings: 'true',
 			includeRuntime: 'true',
 			includeProgram: 'true',
-			includeWeather: 'true',
+			includeWeather: 'false',
 			includeAlerts: 'true',
 			includeEvents: 'true',
 			includeEquipmentStatus: 'true',
@@ -2888,12 +2888,12 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 					.desiredCool / 10
 				data.thermostatList[0].runtime.desiredHeat = data.thermostatList[0].runtime
 					.desiredHeat / 10
-				data.thermostatList[0].weather.forecasts[0].temperature = data.thermostatList[
-					0].weather.forecasts[0].temperature / 10
-				data.thermostatList[0].weather.forecasts[0].tempLow = data.thermostatList[
-					0].weather.forecasts[0].tempLow / 10
-				data.thermostatList[0].weather.forecasts[0].tempHigh = data.thermostatList[
-					0].weather.forecasts[0].tempHigh / 10
+//				data.thermostatList[0].weather.forecasts[0].temperature = data.thermostatList[
+//					0].weather.forecasts[0].temperature / 10
+//				data.thermostatList[0].weather.forecasts[0].tempLow = data.thermostatList[
+//					0].weather.forecasts[0].tempLow / 10
+//				data.thermostatList[0].weather.forecasts[0].tempHigh = data.thermostatList[
+//					0].weather.forecasts[0].tempHigh / 10
 				data.thermostatList[0].settings.quickSaveSetBack = data.thermostatList[0].settings
 					.quickSaveSetBack / 10
 				data.thermostatList[0].settings.quickSaveSetForward = data.thermostatList[
