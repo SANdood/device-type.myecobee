@@ -749,11 +749,7 @@ def parse(String description) {
 }
 
 void poll() {
-	if (atomicState.pollingActive) { 
-    	log.trace 'Already polling'
-        return
-    }
-    atomicState.pollingActive = true
+
     log.trace 'poll()'
     
 	def tstatId,ecobeeType
