@@ -896,11 +896,14 @@ void poll() {
 		sendEvent(name: 'humidifierLevel', value: data.thermostatList[0].settings.humidity,
 			unit: "%")
 	}
-	if (data.thermostatList[0].settings.hasDehumidifier) {
+	
+//  Send dehumidifier data even if we don't have a dedicated dehumidifier - just in case using AC Overcool to control humidity	
+//	if (data.thermostatList[0].settings.hasDehumidifier) {
 		sendEvent(name: 'dehumidifierMode', value: data.thermostatList[0].settings.dehumidifierMode)
 		sendEvent(name: 'dehumidifierLevel', value: data.thermostatList[0].settings.dehumidifierLevel,
 			unit: "%")
-	}
+//		}
+	
 	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings
 		.hasErv)) {
 		sendEvent(name: 'ventilatorMinOnTime', value: data.thermostatList[0].settings
@@ -1218,9 +1221,9 @@ private void doRequest(uri, args, type, success) {
     	sendEvet name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
         state.exceptionCount++
 	} catch (e) {
-		log.debug "doRequest>exception $e, ${e.getMessage()} for " + params.body
+		log.debug "doRequest>exception $e for " + params.uri + " " + params.body
 		sendEvent name: "verboseTrace", value:
-			"doRequest>exception $e, ${e.getMessage()} for " + params.body
+			"doRequest>exception $e for " + params.uri + " " + params.body
 		state.exceptionCount++    
 	}
 }
@@ -3040,14 +3043,14 @@ private def refresh_tokens() {
 		state.exceptionCount++        
 		return false
 	} catch (javax.net.ssl.SSLHandshakeException e) {
-    	log.error "refresh_tokens> SSL Handshake Exception : " + method.uri
+    	log.error "refresh_tokens> SSL Handshake Exception at " + method.uri
     	sendEvent name: "verboseTrace", value: "refresh_tokens> SSL Handshake Exception"
         state.exceptionCount++
         return false
     } catch (e) {
-		log.debug "refresh_tokens>exception $e, ${e.getMessage()} at " + method.uri
+		log.debug "refresh_tokens>exception $e at " + method.uri
 		sendEvent name: "verboseTrace", value:
-			"refresh_tokens>exception $e, ${e.getMessage()} at " + method.uri
+			"refresh_tokens>exception $e at " + method.uri
 		state.exceptionCount++                    
 		return false
 	}
