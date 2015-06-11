@@ -337,7 +337,7 @@ metadata {
 			state "heating", icon: "st.thermostat.heating"
 			state "cooling", icon: "st.thermostat.cooling"
 			state "fan only", icon: "st.thermostat.fan-circulate"
-			state "idle", icon: "st.thermostat.heaating-cooling-off"
+			state "idle", icon: "st.thermostat.heating-cooling-off"
 			state "default", label: '${currentValue}'
 		}
 		valueTile("programEndTimeMsg", "device.programEndTimeMsg", inactiveLabel:
