@@ -332,8 +332,12 @@ metadata {
 //		However, it does not contain humidifier/dehumidifer/HRV/ERV/aux heat
 //		components' running states, just the basic thermostat states (heating, cooling, fan only).
 //		To use this tile instead of the above, just comment out the above tile, and remove comments below.
-		valueTile("operatingState", "device.thermostatOperatingState", inactiveLabel: false,
+		standardTile("operatingState", "device.thermostatOperatingState", inactiveLabel: false,
 			decoration: "flat", width: 1, height: 1) {
+			state "heating", icon: "st.thermostat.heating"
+			state "cooling", icon: "st.thermostat.cooling"
+			state "fan only", icon: "st.thermostat.fan-circulate"
+			state "idle", icon: "st.thermostat.heaating-cooling-off"
 			state "default", label: '${currentValue}'
 		}
 		valueTile("programEndTimeMsg", "device.programEndTimeMsg", inactiveLabel:
