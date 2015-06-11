@@ -1075,7 +1075,8 @@ def getEquipmentStatus() {
 
 def getThermostatOperatingState() {
 
-	def equipStatus = device.currentValue("equipmentStatus")
+//	def equipStatus = device.currentValue("equipmentStatus") // this gets the OLD equipmentStatus from prior poll()
+	def equipStatus = getEquipmentStatus()
 	if (equipStatus == null) 
  		return ""
 	
