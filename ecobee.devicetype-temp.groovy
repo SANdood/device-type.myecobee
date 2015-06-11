@@ -917,7 +917,6 @@ void poll() {
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
     
-    atomicState.pollingActive = false
     log.trace 'poll() done'
 }
 
@@ -3365,7 +3364,6 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 	data.auth.ecobeeType = ecobeeType
 	state.exceptionCount=0    
 	state.lastPollTimestamp = now()
-	state.pollingActive = false
 }
 
 def toQueryString(Map m) {
