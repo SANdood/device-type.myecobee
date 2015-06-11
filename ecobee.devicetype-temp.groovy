@@ -88,6 +88,7 @@ metadata {
 		attribute "plugSettings", "string"
 		attribute "hasHumidifier", "string"
 		attribute "hasDehumidifier", "string"
+		attribute "dehumidifyWithAC", "string"
 		attribute "hasErv", "string"
 		attribute "hasHrv", "string"
 		attribute "ventilatorMinOnTime", "string"
@@ -839,6 +840,7 @@ void poll() {
 		thermostatOperatingState: getThermostatOperatingState(),
 		hasHumidifier:data.thermostatList[0].settings.hasHumidifier.toString(),
 		hasDehumidifier:data.thermostatList[0].settings.hasDehumidifier.toString(),
+		dehumidifyWithAC:data.thermostatList[0].settings.dehumidifyWithAC.toString(),
 		hasHrv:data.thermostatList[0].settings.hasHrv.toString(),
 		hasErv:data.thermostatList[0].settings.hasErv.toString(),
 		programScheduleName: (foundEvent)? data.thermostatList[0].events[indiceEvent].name : currentClimate.name,
@@ -897,12 +899,11 @@ void poll() {
 			unit: "%")
 	}
 	
-//  Send dehumidifier data even if we don't have a dedicated dehumidifier - just in case using AC Overcool to control humidity	
-//	if (data.thermostatList[0].settings.hasDehumidifier) {
+	if ((data.thermostatList[0].settings.hasDehumidifier) || (data.thermostatList[0].settings.dehumidifyWithAC)) {
 		sendEvent(name: 'dehumidifierMode', value: data.thermostatList[0].settings.dehumidifierMode)
 		sendEvent(name: 'dehumidifierLevel', value: data.thermostatList[0].settings.dehumidifierLevel,
 			unit: "%")
-//		}
+	}
 	
 	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings
 		.hasErv)) {
@@ -912,7 +913,6 @@ void poll() {
 	}
        
     log.trace 'poll() done'
-    
 }
 
 private void generateEvent(Map results) {
