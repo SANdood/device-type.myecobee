@@ -745,10 +745,15 @@ def parse(String description) {
 }
 
 void poll() {
-	def tstatId,ecobeeType
-    
-	def thermostatId= determine_tstat_id("")
+	if (atomicState.pollingActive) { 
+    	log.trace 'Already polling'
+        return
+    }
+    atomicState.pollingActive = true
     log.trace 'poll()'
+    
+	def tstatId,ecobeeType
+	def thermostatId= determine_tstat_id("")
 
 //	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
 //	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
@@ -911,7 +916,8 @@ void poll() {
 			.ventilatorMinOnTime)
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
-       
+    
+    atomicState.pollingActive = false
     log.trace 'poll() done'
 }
 
