@@ -332,10 +332,10 @@ metadata {
 //		However, it does not contain humidifier/dehumidifer/HRV/ERV/aux heat
 //		components' running states, just the basic thermostat states (heating, cooling, fan only).
 //		To use this tile instead of the above, just comment out the above tile, and remove comments below.
-//		valueTile("equipStatus", "device.thermostatOperatingState", inactiveLabel: false,
-//			decoration: "flat", width: 3, height: 1) {
-//			state "default", label: '${currentValue}'
-//		}
+		valueTile("operatingState", "device.thermostatOperatingState", inactiveLabel: false,
+			decoration: "flat", width: 1, height: 1) {
+			state "default", label: '${currentValue}'
+		}
 		valueTile("programEndTimeMsg", "device.programEndTimeMsg", inactiveLabel:
 			false, decoration: "flat", width: 3, height: 1) {
 			state "default", label: '${currentValue}'
@@ -442,7 +442,7 @@ metadata {
 			state "default", action: "polling.poll", icon: "st.secondary.refresh"
 		}
 		main "temperature"
-		details(["name", "groups", "mode", "temperature", "fanMode", "switchProgram",
+		details(["name", /* "groups",*/ "operatingState", "mode", "temperature", "fanMode", "switchProgram",
 			"heatLevelDown", "heatingSetpoint", "heatLevelUp", "coolLevelDown",
 			"coolingSetpoint", "coolLevelUp",
 			"equipStatus", "programEndTimeMsg", "humidity", "alerts",
@@ -3364,6 +3364,7 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 	data.auth.ecobeeType = ecobeeType
 	state.exceptionCount=0    
 	state.lastPollTimestamp = now()
+	state.pollingActive = false
 }
 
 def toQueryString(Map m) {
