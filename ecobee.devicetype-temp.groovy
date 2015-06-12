@@ -917,7 +917,7 @@ void poll() {
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
     
-    log.trace 'poll() done'
+    log.info 'poll() done'
 }
 
 private void generateEvent(Map results) {
@@ -2953,7 +2953,7 @@ def getThermostatRevision(tstatType, thermostatId) {
 // tstatType =managementSet or registered (no spaces). 
 // May also be set to a specific locationSet (ex./Toronto/Campus/BuildingA)
 void getThermostatSummary(tstatType) {
-
+	log.trace "getThermostatSummary()"
 	def bodyReq = build_body_request('thermostatSummary',tstatType,null,null)
 	if (settings.trace) {
 		log.debug "getThermostatSummary> about to call api with body = ${bodyReq}"
