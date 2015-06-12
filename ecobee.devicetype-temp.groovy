@@ -3361,7 +3361,7 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 		log.debug "initialSetup> data_auth = $data.auth"
 		log.debug "initialSetup>end"
 	}
-	state.lastPollTimestamp = 0
+	state.lastPollTimestamp = null
 	getThermostatInfo(thermostatId)
 	def ecobeeType=determine_ecobee_type_or_location("")
 	data.auth.ecobeeType = ecobeeType
