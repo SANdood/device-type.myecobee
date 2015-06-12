@@ -750,25 +750,25 @@ def parse(String description) {
 
 void poll() {
 
-    log.trace 'poll()'
+//    log.trace 'poll()'
     
 	def tstatId,ecobeeType
 	def thermostatId= determine_tstat_id("")
 
-//	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
-//	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
-//	
-//	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
-//		if (settings.trace) {
-//			log.debug "poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-//			sendEvent name: "verboseTrace", value:
-//				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-//    	}
-//    	log.info 'poll() skipped'
-//		return
-//	}
-//	state.lastPollTimestamp = now()
-//	log.info 'poll()'
+	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
+	def time_check_for_poll = (now() - (poll_interval * 61 * 1000))
+	
+	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
+		if (settings.trace) {
+			log.debug "poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+			sendEvent name: "verboseTrace", value:
+				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+    	}
+    	log.info 'poll() skipped'
+		return
+	}
+//	state.lastPollTimestamp = now()    // let getThermostatInfo handle the timestamps
+	log.info 'poll()'
 	getThermostatInfo(thermostatId)
     log.trace 'gTI() returned'
 
@@ -2733,7 +2733,9 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 			}
 			return
 		}
-		getThermostatInfo(thermostatId)   
+//		getThermostatInfo(thermostatId)   
+		log.debug "generateRemoteSensorEvents> poll()"
+		poll()
 	}
 	thermostatId = determine_tstat_id(thermostatId)
 
@@ -2839,7 +2841,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 void getThermostatInfo(thermostatId=settings.thermostatId) {
 	
 	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
-	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
+	def time_check_for_poll = (now() - (poll_interval * 61 * 1000))
 	
 	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
 		if (settings.trace) {
@@ -3359,6 +3361,7 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 		log.debug "initialSetup> data_auth = $data.auth"
 		log.debug "initialSetup>end"
 	}
+	state.lastPollTimestamp = 0
 	getThermostatInfo(thermostatId)
 	def ecobeeType=determine_ecobee_type_or_location("")
 	data.auth.ecobeeType = ecobeeType
