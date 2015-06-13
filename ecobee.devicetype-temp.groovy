@@ -1224,8 +1224,12 @@ private void doRequest(uri, args, type, success) {
 		state.exceptionCount++  
   	} catch (javax.net.ssl.SSLHandshakeException e) {
     	log.error "doRequest> SSL Handshake Exception : " + params.uri
-    	sendEvet name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
+    	sendEvent name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
         state.exceptionCount++
+  	} catch (java.util.concurrent.TimeoutException e) {
+  		log.error "doRequest> Timeout Exception - ecobee host busy/down?"
+  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
+  		state.exceptionCount++
 	} catch (e) {
 		log.debug "doRequest>exception $e for " + params.uri + " " + params.body
 		sendEvent name: "verboseTrace", value:
@@ -3055,7 +3059,12 @@ private def refresh_tokens() {
     	sendEvent name: "verboseTrace", value: "refresh_tokens> SSL Handshake Exception"
         state.exceptionCount++
         return false
-    } catch (e) {
+    } catch (java.util.concurrent.TimeoutException e) {
+  		log.error "refresh_tokens> Timeout Exception - ecobee host busy/down?"
+  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
+  		state.exceptionCount++
+  		return false
+	} catch (e) {
 		log.debug "refresh_tokens>exception $e at " + method.uri
 		sendEvent name: "verboseTrace", value:
 			"refresh_tokens>exception $e at " + method.uri
