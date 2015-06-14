@@ -2856,7 +2856,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
     	log.info 'getThermostatInfo() skipped'
 		return
 	}
-	state.lastPollTimestamp = now()
+//	state.lastPollTimestamp = now()	// moved to end, in case error with ecobee API or ExecutionTimeout
 	log.info 'getThermostatInfo()'
 	
 	if (settings.trace) {
@@ -2923,6 +2923,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 			} /* end if statusCode */                 
 		} /* end api call */
 	} /* end while */
+	state.lastPollTimestamp = now()
 }
 
 // tstatType =managementSet or registered (no spaces). 
@@ -3375,7 +3376,7 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 	def ecobeeType=determine_ecobee_type_or_location("")
 	data.auth.ecobeeType = ecobeeType
 	state.exceptionCount=0    
-	state.lastPollTimestamp = now()
+	state.lastPollTimestamp = 0
 }
 
 def toQueryString(Map m) {
