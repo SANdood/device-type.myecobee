@@ -1230,6 +1230,10 @@ private void doRequest(uri, args, type, success) {
   		log.error "doRequest> Timeout Exception - ecobee host busy/down?"
   		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
   		state.exceptionCount++
+	} catch (groovyx.net.http.HttpResponseException e) {
+		log.error "doRequest> HTTPResponseException - ${e.getMessage()}"
+		state.exceptionCount = state.exceptionCount + 3  // let's try to fix in after 2 failures
+	}
 	} catch (e) {
 		log.debug "doRequest>exception $e for " + params.uri + " " + params.body
 		sendEvent name: "verboseTrace", value:
@@ -3062,7 +3066,7 @@ private def refresh_tokens() {
         return false
     } catch (java.util.concurrent.TimeoutException e) {
   		log.error "refresh_tokens> Timeout Exception - ecobee host busy/down?"
-  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
+  		sendEvent name: "verboseTrace", value: "refresh_tokens> Execution timeout"
   		state.exceptionCount++
   		return false
 	} catch (e) {
