@@ -1233,7 +1233,6 @@ private void doRequest(uri, args, type, success) {
 	} catch (groovyx.net.http.HttpResponseException e) {
 		log.error "doRequest> HTTPResponseException - ${e.getMessage()}"
 		state.exceptionCount = state.exceptionCount + 3  // let's try to fix in after 2 failures
-	}
 	} catch (e) {
 		log.debug "doRequest>exception $e for " + params.uri + " " + params.body
 		sendEvent name: "verboseTrace", value:
