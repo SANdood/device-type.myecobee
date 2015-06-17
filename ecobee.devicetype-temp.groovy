@@ -764,11 +764,11 @@ void poll() {
 			sendEvent name: "verboseTrace", value:
 				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
     	}
-    	log.info 'poll() skipped'
+    	log.trace 'poll() skipped'
 		return
 	}
 //	state.lastPollTimestamp = now()    // let getThermostatInfo handle the timestamps
-	log.info 'poll()'
+	log.trace 'poll()'
 	getThermostatInfo(thermostatId)
     log.trace 'gTI() returned'
 
@@ -917,7 +917,7 @@ void poll() {
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
     
-    log.info 'poll() done'
+    log.trace 'poll() done'
 }
 
 private void generateEvent(Map results) {
@@ -2860,11 +2860,11 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 			sendEvent name: "verboseTrace", value:
 				"getThermostatInfo>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
     	}
-    	log.info 'getThermostatInfo() skipped'
+    	log.trace 'getThermostatInfo() skipped'
 		return
 	}
 //	state.lastPollTimestamp = now()	// moved to end, in case error with ecobee API or ExecutionTimeout
-	log.info 'getThermostatInfo()'
+	log.trace 'getThermostatInfo()'
 	
 	if (settings.trace) {
 		log.debug "getThermostatInfo> about to call build_body_request for thermostatId = ${thermostatId}..."
