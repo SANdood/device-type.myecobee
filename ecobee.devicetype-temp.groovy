@@ -2728,7 +2728,9 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	float maxTemp=0, maxHum=0
 	def minTemp=null
 	def minHum=null
-    
+	
+	log.trace "generateEvent> begin"
+
 	if ((thermostatId != null) && (thermostatId != "")) {
 		if (thermostatId.contains(",")) {
         
@@ -2739,7 +2741,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 			return
 		}
 //		getThermostatInfo(thermostatId)   
-		log.debug "generateRemoteSensorEvents> poll()"
+		log.trace "generateRemoteSensorEvents> poll()"
 		poll()
 	}
 	thermostatId = determine_tstat_id(thermostatId)
@@ -2750,7 +2752,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def remoteHumData = ""
 	def remoteOccData = ""
 	
-	log.trace "generateEvent> begin"
+
     
 	if (data.thermostatList[0].remoteSensors?.size() > 0) {
 		for (i in 0..data.thermostatList[0].remoteSensors.size() - 1) {
