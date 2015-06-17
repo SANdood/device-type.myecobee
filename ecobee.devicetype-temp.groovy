@@ -894,9 +894,7 @@ void poll() {
 	if (foundEvent && (data.thermostatList[0]?.events[indiceEvent]?.type == 'quickSave')) {
 		dataEvents.programEndTimeMsg ="Quicksave running"
 	}
-    log.trace 'calling generateEvent()'
 	generateEvent(dataEvents)
-    log.trace 'gE() done'
     
 	if (data.thermostatList[0].settings.hasHumidifier) {
 		sendEvent(name: 'humidifierMode', value: data.thermostatList[0].settings.humidifierMode)
@@ -2751,6 +2749,8 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def remoteTempData = ""
 	def remoteHumData = ""
 	def remoteOccData = ""
+	
+	log.trace "generateEvent> begin"
     
 	if (data.thermostatList[0].remoteSensors?.size() > 0) {
 		for (i in 0..data.thermostatList[0].remoteSensors.size() - 1) {
@@ -2806,6 +2806,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 						nbHumSensorInUse++
 					}
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_OCCUPANCY) {
+					/* value = "unknown" ???
 					remoteOccData = remoteOccData + data.thermostatList[0].remoteSensors[i].id + "," + 
 						data.thermostatList[0].remoteSensors[i].name + "," +
 						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
@@ -2845,6 +2846,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 		log.debug "generateRemoteSensorEvents>remoteSensorEvents to be sent= ${remoteSensorEvents}"
 	}
 	generateEvent(remoteSensorEvents)
+	log.trace "generateEvent> done!"
 }
     
 // thermostatId may be a list of serial# separated by ",", no spaces (ex. '123456789012,123456789013') 
