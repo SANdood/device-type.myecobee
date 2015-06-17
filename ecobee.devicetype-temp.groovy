@@ -2806,7 +2806,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 						nbHumSensorInUse++
 					}
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_OCCUPANCY) {
-					/* value = "unknown" ???
+					/* value = "unknown" ??? */
 					remoteOccData = remoteOccData + data.thermostatList[0].remoteSensors[i].id + "," + 
 						data.thermostatList[0].remoteSensors[i].name + "," +
 						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
