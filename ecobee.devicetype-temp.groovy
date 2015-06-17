@@ -2783,24 +2783,28 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 					log.debug "generateRemoteSensorEvents>looping i=${i},found ${data.thermostatList[0].remoteSensors[i].capability[j]} at j=${j}"
 				}
 				if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_TEMPERATURE) {
-					// Divide the sensor temperature by 10 
-					value =(data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()/10).round(1)
- 					remoteTempData = remoteTempData + data.thermostatList[0].remoteSensors[i].id + "," +
-						data.thermostatList[0].remoteSensors[i].name + "," +
-						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + value.toString() + ",,"
-					totalTemp = totalTemp + value
-					maxTemp = Math.max(value,maxTemp)
-					minTemp = (minTemp==null)? value: Math.min(value,minTemp)
-					nbTempSensorInUse++
+					if (data.thermostatList[0].remoteSensors[i].capability[j].value.isNumber()) {  // Sometimes returns "unknown"
+						// Divide the sensor temperature by 10 
+						value =(data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()/10).round(1)
+ 						remoteTempData = remoteTempData + data.thermostatList[0].remoteSensors[i].id + "," +
+							data.thermostatList[0].remoteSensors[i].name + "," +
+							data.thermostatList[0].remoteSensors[i].capability[j].type + "," + value.toString() + ",,"
+						totalTemp = totalTemp + value
+						maxTemp = Math.max(value,maxTemp)
+						minTemp = (minTemp==null)? value: Math.min(value,minTemp)
+						nbTempSensorInUse++
+					}
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_HUMIDITY) {
-					remoteHumData = remoteHumData + data.thermostatList[0].remoteSensors[i].id + "," + 
-						data.thermostatList[0].remoteSensors[i].name + "," +
-						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
-					value =data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()
-					totalHum = totalHum + value
-					maxHum = Math.max(value,maxHum)
-					minHum = (minHum==null)? value: Math.min(value,minHum)
-					nbHumSensorInUse++
+					if (data.thermostatList[0].remoteSensors[i].capability[j].value.isNumber()) {
+						remoteHumData = remoteHumData + data.thermostatList[0].remoteSensors[i].id + "," + 
+							data.thermostatList[0].remoteSensors[i].name + "," +
+							data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
+						value =data.thermostatList[0].remoteSensors[i].capability[j].value.toFloat()
+						totalHum = totalHum + value
+						maxHum = Math.max(value,maxHum)
+						minHum = (minHum==null)? value: Math.min(value,minHum)
+						nbHumSensorInUse++
+					}
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_OCCUPANCY) {
 					remoteOccData = remoteOccData + data.thermostatList[0].remoteSensors[i].id + "," + 
 						data.thermostatList[0].remoteSensors[i].name + "," +
