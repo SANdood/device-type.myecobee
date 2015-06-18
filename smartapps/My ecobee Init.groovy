@@ -373,13 +373,13 @@ def initialize() {
 
 	delete_child_devices()	
 	create_child_devices()
-    
-	takeAction()
-	// set up internal poll timer
-	def pollTimer = 20
 
-	log.trace "setting poll to ${pollTimer}"
-	schedule("0 0/${pollTimer.toInteger()} * * * ?", takeAction)
+	state.pollTimer = 20    
+	// set up internal poll timer
+	log.trace "setting poll to ${state.pollTimer}"
+	schedule("0 0/${state.pollTimer.toInteger()} * * * ?", takeAction)
+	
+	takeAction()
 }
 
 def takeAction() {
@@ -389,9 +389,22 @@ def takeAction() {
 		log.debug "takeAction>Looping thru thermostats, found id $dni, about to poll"
 		d.poll()
 	}
+	
+	Integer longDelayTimer = (state.pollTimer*2)*60
+	runIn(longDelayTimer, longDelay, [overwrite: true])		// recover from broken schedule() issues
+	
 	log.trace "takeAction>end"
 }
 
+
+def longDelay() {
+
+	log.trace "********longDelay********"
+    
+    takeAction()
+        
+    sendPush( "${location.name} MyEcobeeInit: ***longDelay***" )
+}
 
 def oauthInitUrl() {
 	log.debug "oauthInitUrl"
