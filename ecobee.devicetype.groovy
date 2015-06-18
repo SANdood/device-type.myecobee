@@ -764,13 +764,12 @@ void poll() {
 			sendEvent name: "verboseTrace", value:
 				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
     	}
-    	log.trace 'poll() skipped'
+    	log.trace 'poll> skipped'
 		return
 	}
 //	state.lastPollTimestamp = now()    // let getThermostatInfo handle the timestamps
-	log.trace 'poll()'
+	log.trace 'poll> begin'
 	getThermostatInfo(thermostatId)
-    log.trace 'gTI() returned'
 
 	// determine if there is an event running
     
@@ -915,10 +914,12 @@ void poll() {
 		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
 	}
     
-    log.trace 'poll() done'
+    log.trace 'poll> done!'
 }
 
 private void generateEvent(Map results) {
+	log.trace "generateEvent> begin"
+	
 	if (settings.trace) {
 		log.debug "generateEvent>parsing data $results"
 	}
@@ -978,6 +979,7 @@ private void generateEvent(Map results) {
 			}
 		}
 	}
+	log.trace "generateEvent> done!"
 }
 
 private def getCurrentProgName() {
@@ -2729,7 +2731,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def minTemp=null
 	def minHum=null
 	
-	log.trace "generateEvent> begin"
+	log.trace "generateRemoteSensorEvents> begin"
 
 	if ((thermostatId != null) && (thermostatId != "")) {
 		if (thermostatId.contains(",")) {
@@ -2848,7 +2850,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 		log.debug "generateRemoteSensorEvents>remoteSensorEvents to be sent= ${remoteSensorEvents}"
 	}
 	generateEvent(remoteSensorEvents)
-	log.trace "generateEvent> done!"
+	log.trace "generateRemoteSensorEvents> done!"
 }
     
 // thermostatId may be a list of serial# separated by ",", no spaces (ex. '123456789012,123456789013') 
@@ -2864,11 +2866,11 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 			sendEvent name: "verboseTrace", value:
 				"getThermostatInfo>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
     	}
-    	log.trace 'getThermostatInfo() skipped'
+    	log.trace 'getThermostatInfo> skipped'
 		return
 	}
 //	state.lastPollTimestamp = now()	// moved to end, in case error with ecobee API or ExecutionTimeout
-	log.trace 'getThermostatInfo()'
+	log.trace 'getThermostatInfo> begin'
 	
 	if (settings.trace) {
 		log.debug "getThermostatInfo> about to call build_body_request for thermostatId = ${thermostatId}..."
@@ -2918,11 +2920,11 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 				def thermostatSettings = data.thermostatList[0].settings
 				if (settings.trace) {
 					sendEvent name: "verboseTrace", value:
-						"getTstatInfo> thermostatId=${thermostatId},name=${thermostatName},hvacMode=${thermostatSettings.hvacMode}," +
+						"getThermostatInfo> thermostatId=${thermostatId},name=${thermostatName},hvacMode=${thermostatSettings.hvacMode}," +
 						"fan=${runtimeSettings.desiredFanMode},fanMinOnTime=${thermostatSettings.fanMinOnTime},desiredHeat=${runtimeSettings.desiredHeat},desiredCool=${runtimeSettings.desiredCool}," +
 						"current Humidity= ${runtimeSettings.actualHumidity},desiredHumidity=${runtimeSettings.desiredHumidity},humidifierMode=${thermostatSettings.humidifierMode}," +
 						"desiredDehumidity= ${runtimeSettings.desiredDehumidity},dehumidifierMode=${thermostatSettings.dehumidifierMode}"
-					log.debug "getTstatInfo> thermostatId=${thermostatId},name=${thermostatName},hvacMode=${thermostatSettings.hvacMode}," +
+					log.debug "getThermostatInfo> thermostatId=${thermostatId},name=${thermostatName},hvacMode=${thermostatSettings.hvacMode}," +
 						"fan=${runtimeSettings.desiredFanMode},fanMinOnTime=${thermostatSettings.fanMinOnTime},desiredHeat=${runtimeSettings.desiredHeat},desiredCool=${runtimeSettings.desiredCool}," +
 						"current Humidity=${runtimeSettings.actualHumidity} desiredHumidity = ${runtimeSettings.desiredHumidity},humidifierMode=${thermostatSettings.humidifierMode}," +
 						"desiredDehumidity=${runtimeSettings.desiredDehumidity},dehumidifierMode=${thermostatSettings.dehumidifierMode}"
@@ -2930,11 +2932,12 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 			} else {
 				log.error "getThermostatInfo> error=${statusCode.toString()} - ${statusCode}, message = ${message}"
 				sendEvent name: "verboseTrace", value:
-					"getTstatInfo>error=${statusCode} for ${thermostatId}"
+					"getThermostatInfo>error=${statusCode} for ${thermostatId}"
 			} /* end if statusCode */                 
 		} /* end api call */
 	} /* end while */
 	state.lastPollTimestamp = now()
+	log.trace "getThermostatInfo> done!"
 }
 
 // tstatType =managementSet or registered (no spaces). 
