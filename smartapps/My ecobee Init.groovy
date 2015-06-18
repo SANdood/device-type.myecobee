@@ -1,4 +1,4 @@
- /**
+/**
  *	My ecobee Init (Service Manager)
  *
  *	Author: scott
@@ -23,8 +23,11 @@ definition(
 preferences {
 	page(name: "about", title: "About", nextPage: "auth")
 	page(name: "auth", title: "ecobee", content:"authPage", nextPage:"deviceList")
-	page(name: "deviceList", title: "ecobee", content:"ecobeeDeviceList", nextPage: "deviceList2")
+	page(name: "deviceList", title: "ecobee", content:"ecobeeDeviceList", install:true)
+/*
+	Remove the 2nd page as this is not efficient workaround for the ST max execution time constraint
 	page(name: "deviceList2", title: "ecobee", content:"ecobeeDeviceList2", install:true)
+*/
 }
 
 mappings {
@@ -39,7 +42,7 @@ def about() {
  	dynamicPage(name: "about", install: false, uninstall: true) {
  		section("About") {	
 			paragraph "My Ecobee Init, the smartapp that connects your Ecobee thermostat to SmartThings via cloud-to-cloud integration"
-			paragraph "Version 1.9\n\n" +
+			paragraph "Version 1.9.2\n\n" +
 			"If you like this app, please support the developer via PayPal:\n\nyracine@yahoo.com\n\n" +
 			"Copyright©2014 Yves Racine"
 			href url:"http://github.com/yracine/device-type.myecobee", style:"embedded", required:false, title:"More information...", 
@@ -51,8 +54,7 @@ def about() {
 def authPage() {
 	log.debug "authPage()"
 
-	if(!atomicState.accessToken)
-	{
+	if (!atomicState.accessToken) {
 		log.debug "about to create access token"
 		createAccessToken()
 		atomicState.accessToken = state.accessToken
@@ -63,17 +65,13 @@ def authPage() {
 	def uninstallAllowed = false
 	def oauthTokenProvided = false
 
-	if(atomicState.authToken)
-	{
+	if (atomicState.authToken) {
 		// TODO: Check if it's valid
-		if(true)
-		{
+		if(true) {
 			description = "You are connected."
 			uninstallAllowed = true
 			oauthTokenProvided = true
-		}
-		else
-		{
+		} else {
 			description = "Required" // Worth differentiating here vs. not having atomicState.authToken? 
 			oauthTokenProvided = false
 		}
@@ -120,8 +118,10 @@ def ecobeeDeviceList() {
 	log.debug "device list: $ems"
 
 	stats = stats + ems
-    
+/*    
 	def p = dynamicPage(name: "deviceList", title: "Select Your Thermostats", nextPage: "deviceList2") {
+*/    
+	def p = dynamicPage(name: "deviceList", title: "Select Your Thermostats", uninstall: true) {
 		section(""){
 			paragraph "Tap below to see the list of ecobee thermostats available in your ecobee account and select the ones you want to connect to SmartThings (3 max per page)."
 			input(name: "thermostats", title:"", type: "enum", required:true, multiple:true, description: "Tap to choose", metadata:[values:stats])
@@ -183,7 +183,7 @@ def getEcobeeThermostats(String type="") {
 	try {
 		httpGet(deviceListParams) { resp ->
 
-			if(resp.status == 200) {
+			if (resp.status == 200) {
 /*        
         		int i=0    // Used to simulate many thermostats
 */
@@ -199,8 +199,7 @@ def getEcobeeThermostats(String type="") {
 				log.debug "http status: ${resp.status}"
 
 				//refresh the auth token
-				if (resp.status == 500 && resp.data.status.code == 14)
-				{
+				if (resp.status == 500 && resp.data.status.code == 14) {
 					log.debug "Storing the failed action to try later"
 					data.action = "getEcobeeThermostats"
 					log.debug "Need to refresh your auth_token!"
@@ -279,8 +278,7 @@ def refreshThisChildAuthTokens(child) {
 
 def getThermostatDisplayName(stat) {
 	log.debug "getThermostatDisplayName"
-	if(stat?.name)
-	{
+	if(stat?.name) {
 		return stat.name.toString()
 	}
 
@@ -307,6 +305,7 @@ def updated() {
 	log.debug "Updated with settings: ${settings}"
 
 	unsubscribe()
+	unschedule()    
 	initialize()
 }
 
@@ -342,8 +341,7 @@ private def create_child_devices() {
 		def d = getChildDevice(dni)
 		log.debug "create_child_devices>looping thru thermostats, found id $dni"
 
-		if(!d)
-		{
+		if(!d) {
 			def tstat_info  = dni.tokenize('.')
 			def thermostatId = tstat_info.last()
  			def name = tstat_info[1]
@@ -357,9 +355,7 @@ private def create_child_devices() {
 				[label: "${labelName}"]) 
 			d.initialSetup( getSmartThingsClientId(), atomicState, thermostatId ) 	// initial setup of the Child Device
 			log.debug "create_child_devices>created ${d.displayName} with id $dni"
-		}
-		else
-		{
+		} else {
 			log.debug "create_child_devices>found ${d.displayName} with id $dni already exists"
 		}
 
