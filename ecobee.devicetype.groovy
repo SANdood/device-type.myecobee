@@ -100,7 +100,9 @@ metadata {
 		attribute "followMeComfort", "string"
 		attribute "autoAway", "string"
 		attribute "thermostatRevision", "string"
+		attribute "alertsRevision", "string"
 		attribute "runtimeRevision", "string"
+		attribute "internalRevision", "string"
 		attribute "heatStages", "string"
 		attribute "coolStages", "string"
 		attribute "climateName", "string"
@@ -769,6 +771,8 @@ void poll() {
 	}
 //	state.lastPollTimestamp = now()    // let getThermostatInfo handle the timestamps
 	log.trace 'poll> begin'
+	getThermostatRevision("", thermostatId)
+	
 	getThermostatInfo(thermostatId)
 
 	// determine if there is an event running
@@ -925,15 +929,14 @@ private void generateEvent(Map results) {
 	}
     
     def scale = getTemperatureScale()
+    def changedCount = 0
     
 	if(results) {
 		results.each { name, value ->
 			def isDisplayed = true
 
 // 			Temperature variable names for display contain 'display'            
-
 			if (name.toUpperCase().contains("DISPLAY")) {  
-
 				String tempValueString 
 				Double tempValue 
 				if (scale == "F") {
@@ -944,41 +947,40 @@ private void generateEvent(Map results) {
 					tempValueString = String.format('%2.1f', tempValue)
 				}
 				def isChange = isTemperatureStateChange(device, name, tempValueString)
-                
+                if (isChange) { changedCount++ }
 				isDisplayed = isChange
 				sendEvent(name: name, value: tempValueString, unit: scale, displayed: isDisplayed)                                     									 
 
 // 			Temperature variable names contain 'temp' or 'setpoint' (not for display)           
-
 			} else if ((name.toUpperCase().contains("TEMP"))|| (name.toUpperCase().contains("SETPOINT"))) {  
-                                
 				Double tempValue = getTemperature(value).toDouble().round(1)
 				String tempValueString = String.format('%2.1f', tempValue)
 				def isChange = isTemperatureStateChange(device, name, tempValueString)
-                
+                if (isChange) { changedCount++ }                
 				isDisplayed = isChange
-				sendEvent(name: name, value: tempValueString, unit: scale, displayed: isDisplayed)                                     									 
-			} else if (name.toUpperCase().contains("SPEED")) { // Temperature variable names contain 'temp' or 'setpoint'
-
+				sendEvent(name: name, value: tempValueString, unit: scale, displayed: isDisplayed)    
 // 			Speed variable names contain 'speed'
-
+			} else if (name.toUpperCase().contains("SPEED")) { 
  				float speedValue = getSpeed(value).toFloat().round(1)
 				def isChange = isStateChange(device, name, speedValue.toString())
+                if (isChange) { changedCount++ }
 				isDisplayed = isChange
 				sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), displayed: isDisplayed)                                     									 
 			} else if (name.toUpperCase().contains("HUMIDITY")) {
  				float humidityValue = value.toFloat().round(1)
 				def isChange = isStateChange(device, name, humidityValue.toString())
+                if (isChange) { changedCount++ }
 				isDisplayed = isChange
 				sendEvent(name: name, value: humidityValue.toString(), unit: "%", displayed: isDisplayed)                                     									 
  			} else {
 				def isChange = isStateChange(device, name, value)
+                if (isChange) { changedCount++ }
 				isDisplayed = isChange
-
 				sendEvent(name: name, value: value, isStateChange: isChange, displayed: isDisplayed)       
 			}
 		}
 	}
+	log.debug "changedCount: ${changedCount}"
 	log.trace "generateEvent> done!"
 }
 
@@ -2945,7 +2947,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 // thermostatId may be a single thermostat only
 
 def getThermostatRevision(tstatType, thermostatId) {
-
+	log.trace 'getThermostatRevision> begin'
 	thermostatId = determine_tstat_id(thermostatId)
 	def ecobeeType = determine_ecobee_type_or_location(tstatType)
 	getThermostatSummary(ecobeeType)
@@ -2954,18 +2956,21 @@ def getThermostatRevision(tstatType, thermostatId) {
 		def id = thermostatDetails[0]
 		def thermostatName = thermostatDetails[1]
 		def connected = thermostatDetails[2]
+		def thermostatRevision = thermostatDetails[3]
+		def alertsRevision = thermostatDetails[4]
 		def runtimeRevision = thermostatDetails[5]
 		def internalRevision = thermostatDetails[6]
+		log.debug "Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, internal: ${internalRevision}"
 		if (thermostatId == id) {
 			sendEvent name: "runtimeRevision", value: runtimeRevision
 			sendEvent name: "thermostatRevision", value: internalRevision
 			if (settings.trace) {	
-				log.debug "getThermostatRevision> done for ${thermostatId}, thermostatRevision=$internalRevision, runtimeRevision=$runtimeRevision"
+				log.debug "getThermostatRevision> done for ${thermostatId}, internalRevision=$internalRevision, runtimeRevision=$runtimeRevision"
 			}
 			return
 		}
-		            
 	}
+	log.trace "getThermostatRevision> done!"
 }
 
 
@@ -2996,6 +3001,8 @@ void getThermostatSummary(tstatType) {
 					def thermostatRevision = thermostatDetails[3]
 					def alertRevision = thermostatDetails[4]
 					def runtimeRevision = thermostatDetails[5]
+					def internalRevision = thermostatDetails[6]
+					log.debug "Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, internal: ${internalRevision}"
 					if (settings.trace) {
 						log.debug "getThermostatSummary>thermostatId=${thermostatId},name=${thermostatName},connected =${connected}"
 						sendEvent name: "verboseTrace", value:
