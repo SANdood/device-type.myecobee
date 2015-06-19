@@ -751,9 +751,8 @@ def parse(String description) {
 }
 
 void poll() {
-
-//    log.trace 'poll()'
-    
+	log.trace 'poll> begin'
+	
 	def tstatId,ecobeeType
 	def thermostatId= determine_tstat_id("")
 
@@ -769,16 +768,15 @@ void poll() {
     	log.trace 'poll> skipped - too soon'
 		return
 	}
-//	state.lastPollTimestamp = now()    // let getThermostatInfo handle the timestamps
-	log.trace 'poll> begin'
 	
 	getThermostatRevision("", thermostatId)
-	
+
 	def newRevision = device.currentValue('runtimeRevision')
 	if (settings.trace) {
 		log.debug ("getReportData>runtimetRevision=${state?.runtimeRevision},newRevision=${newRevision}...")
 	}
 	if ((state?.runtimeRevision != null) && (state?.runtimeRevision == newRevision)) {
+		state.lastPollTimestamp = now()    							// can't call thermostatSummary faster, either
 		log.trace 'poll> skipped - no revisions'
 		return
 	}
@@ -3000,7 +2998,7 @@ def getThermostatRevision(tstatType, thermostatId) {
 		def runtimeRevision = thermostatDetails[5]
 		def intervalRevision = thermostatDetails[6]
 		if (thermostatId == id) {
-			sendEvent name: "runtimeRevision", value: runtimeRevision, displayed: true
+			sendEvent name: "runtimeRevision", value: runtimeRevision, displayed: false
 			sendEvent name: "thermostatRevision", value: thermostatRevision, displayed: false
 			sendEvent name: "alertsRevision", value: alertsRevision, displayed: false
 			sendEvent name: "intervalRevision", value: intervalRevision, displayed: false
@@ -3036,10 +3034,10 @@ void getThermostatSummary(tstatType) {
 					def thermostatId = thermostatDetails[0]
 					def thermostatName = thermostatDetails[1]
 					def connected = thermostatDetails[2]
-					def thermostatRevision = thermostatDetails[3]
-					def alertRevision = thermostatDetails[4]
-					def runtimeRevision = thermostatDetails[5]
-					def intervalRevision = thermostatDetails[6]
+//					def thermostatRevision = thermostatDetails[3]
+//					def alertRevision = thermostatDetails[4]
+//					def runtimeRevision = thermostatDetails[5]
+//					def intervalRevision = thermostatDetails[6]
 					if (settings.trace) {
 						log.debug "getThermostatSummary>thermostatId=${thermostatId},name=${thermostatName},connected =${connected}"
 						sendEvent name: "verboseTrace", value:
