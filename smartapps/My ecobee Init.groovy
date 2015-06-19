@@ -374,11 +374,9 @@ def initialize() {
 	delete_child_devices()	
 	create_child_devices()
 
-	state.pollTimer = 20    
-	// set up internal poll timer
-	log.trace "setting poll to ${state.pollTimer}"
-	schedule("0 0/${state.pollTimer.toInteger()} * * * ?", takeAction)
-	
+	state.pollTimer = 20
+	setupScheduler()
+
 	takeAction()
 }
 
@@ -390,16 +388,24 @@ def takeAction() {
 		d.poll()
 	}
 	
-	Integer longDelayTimer = (state.pollTimer*2)*60
+	Integer longDelayTimer = ((state.pollTimer*2)+2)*60
 	runIn(longDelayTimer, longDelay, [overwrite: true])		// recover from broken schedule() issues
 	
 	log.trace "takeAction>end"
 }
 
+def setupScheduler() {   
+	// set up internal poll timer
+	log.trace "setting poll to ${state.pollTimer}"
+	schedule("0 0/${state.pollTimer.toInteger()} * * * ?", takeAction)
+}
 
 def longDelay() {
 
 	log.trace "********longDelay********"
+    
+    unschedule( takeAction )
+    setupScheduler()
     
     takeAction()
         
