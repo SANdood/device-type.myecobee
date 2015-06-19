@@ -913,22 +913,42 @@ void poll() {
 
 // Probably only need to send these once, or when they change (rarely)    
 	if (data.thermostatList[0].settings.hasHumidifier) {
-		sendEvent(name: 'humidifierMode', value: data.thermostatList[0].settings.humidifierMode)
-		sendEvent(name: 'humidifierLevel', value: data.thermostatList[0].settings.humidity,
-			unit: "%")
+		def humidifierMode = data.thermostatList[0].settings.humidifierMode
+		def isChange = isStateChange(device, 'humidifierMode', humidifierMode)
+        if (isChange) { 
+			sendEvent(name: 'humidifierMode', value: humidifierMode, displayed: true)
+        }		
+        def humidifierLevel = data.thermostatList[0].settings.humidity
+        isChange = isStateChange(device, 'humidifierLevel', humidifierLevel)
+        if (isChange) {
+        	sendEvent(name: 'humidifierLevel', value: humidifierLevel, unit: "%", displayed: true)
+        }
 	}
 	
 	if ((data.thermostatList[0].settings.hasDehumidifier) || (data.thermostatList[0].settings.dehumidifyWithAC)) {
-		sendEvent(name: 'dehumidifierMode', value: data.thermostatList[0].settings.dehumidifierMode)
-		sendEvent(name: 'dehumidifierLevel', value: data.thermostatList[0].settings.dehumidifierLevel,
-			unit: "%")
+		def dehumidifierMode = data.thermostatList[0].settings.dehumidifierMode
+		def isChange = isStateChange(device, 'dehumidifierMode', dehumidifierMode)
+        if (isChange) { 
+			sendEvent(name: 'dehumidifierMode', value: dehumidifierMode, displayed: true)
+        }		
+        def dehumidifierLevel = data.thermostatList[0].settings.dehumidifierLevel
+        isChange = isStateChange(device, 'dehumidifierLevel', dehumidifierLevel)
+        if (isChange) {
+        	sendEvent(name: 'dehumidifierLevel', value: dehumidifierLevel, unit: "%", displayed: true)
+        }		
 	}
 	
-	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings
-		.hasErv)) {
-		sendEvent(name: 'ventilatorMinOnTime', value: data.thermostatList[0].settings
-			.ventilatorMinOnTime)
-		sendEvent(name: 'ventilatorMode', value: data.thermostatList[0].settings.vent)
+	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings.hasErv)) {
+		def ventilatorMonOnTime = data.thermostatList[0].settings.ventilatorMinOnTime
+		def isChange = isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime)
+        if (isChange) { 
+			sendEvent(name: 'ventilatorMinOnTime', value: ventilatorMinOnTime, displayed: true)
+        }		
+        def ventilatorMode = data.thermostatList[0].settings.vent
+        isChange = isStateChange(device, 'ventilatorMode', ventilatorMode)
+        if (isChange) {
+        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, unit: "%", displayed: true)
+        }		
 	}
     
     log.trace 'poll> done!'
@@ -962,8 +982,7 @@ private void generateEvent(Map results) {
 				def isChange = isTemperatureStateChange(device, name, tempValueString)
                 if (isChange) { 
                 	changedCount++ 
-					isDisplayed = isChange
-					sendEvent(name: name, value: tempValueString, unit: scale, displayed: isDisplayed)
+					sendEvent(name: name, value: tempValueString, unit: scale, displayed: true)
                 }
 
 // 			Temperature variable names contain 'temp' or 'setpoint' (not for display)           
@@ -973,8 +992,7 @@ private void generateEvent(Map results) {
 				def isChange = isTemperatureStateChange(device, name, tempValueString)
                 if (isChange) { 
                 	changedCount++
-					isDisplayed = isChange
-					sendEvent(name: name, value: tempValueString, unit: scale, displayed: isDisplayed)
+					sendEvent(name: name, value: tempValueString, unit: scale, displayed: true)
                 }
                 
 // 			Speed variable names contain 'speed'
@@ -983,8 +1001,7 @@ private void generateEvent(Map results) {
 				def isChange = isStateChange(device, name, speedValue.toString())
                 if (isChange) { 
                 	changedCount++
-					isDisplayed = isChange
-					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), displayed: isDisplayed)
+					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), displayed: true)
                 }
                 
 			} else if (name.toUpperCase().contains("HUMIDITY")) {
@@ -992,15 +1009,13 @@ private void generateEvent(Map results) {
 				def isChange = isStateChange(device, name, humidityValue.toString())
                 if (isChange) { 
                 	changedCount++ 
-					isDisplayed = isChange
-					sendEvent(name: name, value: humidityValue.toString(), unit: "%", displayed: isDisplayed)
+					sendEvent(name: name, value: humidityValue.toString(), unit: "%", displayed: true)
                 }					
  			} else {
 				def isChange = isStateChange(device, name, value)
                 if (isChange) { 
                 	changedCount++ 
-					isDisplayed = isChange
-					sendEvent(name: name, value: value, isStateChange: isChange, displayed: isDisplayed)
+					sendEvent(name: name, value: value, isStateChange: isChange, displayed: true)
                 }
 			}
 		}
@@ -2987,10 +3002,10 @@ def getThermostatRevision(tstatType, thermostatId) {
 		def intervalRevision = thermostatDetails[6]
 		if (thermostatId == id) {
 			log.debug "Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, interval: ${intervalRevision}"
-			sendEvent name: "runtimeRevision", value: runtimeRevision
-			sendEvent name: "thermostatRevision", value: thermostatRevision
-			sendEvent name: "alertsRevision", value: alertsRevision
-			sendEvent name: "intervalRevision", value: intervalRevision
+			sendEvent name: "runtimeRevision", value: runtimeRevision, displayed: true
+			sendEvent name: "thermostatRevision", value: thermostatRevision, displayed: false
+			sendEvent name: "alertsRevision", value: alertsRevision, displayed: false
+			sendEvent name: "intervalRevision", value: intervalRevision, displayed: false
 			if (settings.trace) {	
 				log.debug "getThermostatRevision> done for ${thermostatId}, intervalRevision=$intervalRevision, runtimeRevision=$runtimeRevision"
 			}
