@@ -107,7 +107,7 @@ def authPage() {
 }
 
 def ecobeeDeviceList() {
-	log.debug "ecobeeDeviceList()"
+	log.trace "ecobeeDeviceList()"
 
 	def stats = getEcobeeThermostats()
 
@@ -134,7 +134,7 @@ def ecobeeDeviceList() {
 
 
 def ecobeeDeviceList2() {
-	log.debug "ecobeeDeviceList2()"
+	log.trace "ecobeeDeviceList2()"
 
 	def stats = getEcobeeThermostats()
 
@@ -281,7 +281,6 @@ def getThermostatDisplayName(stat) {
 	if(stat?.name) {
 		return stat.name.toString()
 	}
-
 	return (getThermostatTypeName(stat) + " (${stat.identifier})").toString()
 }
 
@@ -322,15 +321,12 @@ private def delete_child_devices() {
 		delete = getChildDevices().findAll { !thermostats.contains(it.deviceNetworkId) }
 	}
 
-
 	try { 
 		delete.each { deleteChildDevice(it.deviceNetworkId) }
 		log.debug "delete_child_devices>deleting ${delete.size()} ecobee thermostats"  
 	} catch (e) {
 		log.debug "delete_child_devices>exception $e while deleting ${delete.size()} ecobee thermostats"
 	}
-
-
 }
 
 private def create_child_devices() {
@@ -358,13 +354,8 @@ private def create_child_devices() {
 		} else {
 			log.debug "create_child_devices>found ${d.displayName} with id $dni already exists"
 		}
-
 	}
-
 	log.debug "create_child_devices>created ${devices.size()} thermostats"
-
-
-
 }
 
 def initialize() {
