@@ -2980,7 +2980,7 @@ def getThermostatRevision(tstatType, thermostatId) {
 	for (i in 0..data.thermostatCount - 1) {
 		def thermostatDetails = data.revisionList[i].split(':')
 		def id = thermostatDetails[0]
-		def thermostatName = thermostatDetailshttp://crservers.homeip.net/?sn=01-87-7B-37-15-00-00-FE&mac=bc-a9-d6-00-03-cd[1]
+		def thermostatName = thermostatDetails[1]
 		def connected = thermostatDetails[2]
 		def thermostatRevision = thermostatDetails[3]
 		def alertsRevision = thermostatDetails[4]
