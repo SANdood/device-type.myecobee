@@ -771,19 +771,18 @@ void poll() {
 	}
 //	state.lastPollTimestamp = now()    // let getThermostatInfo handle the timestamps
 	log.trace 'poll> begin'
+	
 	getThermostatRevision("", thermostatId)
 	
-/*
 	def newRevision = device.currentValue('runtimeRevision')
 	if (settings.trace) {
 		log.debug ("getReportData>runtimetRevision=${state?.runtimeRevision},newRevision=${newRevision}...")
 	}
 	if ((state?.runtimeRevision != null) && (state?.runtimeRevision == newRevision)) {
-		log.trace 'poll> skipped - no revisions'
-		return
+		log.trace 'poll> WOULD skip - no revisions'
+//		return
 	}
 	state?.runtimeRevision = newRevision
-*/
 	
 	getThermostatInfo(thermostatId)
 
