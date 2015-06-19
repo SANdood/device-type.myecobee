@@ -779,8 +779,8 @@ void poll() {
 		log.debug ("getReportData>runtimetRevision=${state?.runtimeRevision},newRevision=${newRevision}...")
 	}
 	if ((state?.runtimeRevision != null) && (state?.runtimeRevision == newRevision)) {
-		log.trace 'poll> WOULD skip - no revisions'
-//		return
+		log.trace 'poll> skipped - no revisions'
+		return
 	}
 	state?.runtimeRevision = newRevision
 	
@@ -919,7 +919,7 @@ void poll() {
 			sendEvent(name: 'humidifierMode', value: humidifierMode, displayed: true)
         }		
         def humidifierLevel = data.thermostatList[0].settings.humidity
-        isChange = isStateChange(device, 'humidifierLevel', humidifierLevel)
+        isChange = isStateChange(device, 'humidifierLevel', humidifierLevel.toString())
         if (isChange) {
         	sendEvent(name: 'humidifierLevel', value: humidifierLevel, unit: "%", displayed: true)
         }
@@ -932,7 +932,7 @@ void poll() {
 			sendEvent(name: 'dehumidifierMode', value: dehumidifierMode, displayed: true)
         }		
         def dehumidifierLevel = data.thermostatList[0].settings.dehumidifierLevel
-        isChange = isStateChange(device, 'dehumidifierLevel', dehumidifierLevel)
+        isChange = isStateChange(device, 'dehumidifierLevel', dehumidifierLevel.toString())
         if (isChange) {
         	sendEvent(name: 'dehumidifierLevel', value: dehumidifierLevel, unit: "%", displayed: true)
         }		
@@ -940,14 +940,14 @@ void poll() {
 	
 	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings.hasErv)) {
 		def ventilatorMonOnTime = data.thermostatList[0].settings.ventilatorMinOnTime
-		def isChange = isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime)
+		def isChange = isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime.toString())
         if (isChange) { 
 			sendEvent(name: 'ventilatorMinOnTime', value: ventilatorMinOnTime, displayed: true)
         }		
         def ventilatorMode = data.thermostatList[0].settings.vent
         isChange = isStateChange(device, 'ventilatorMode', ventilatorMode)
         if (isChange) {
-        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, unit: "%", displayed: true)
+        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, displayed: true)
         }		
 	}
     
@@ -2987,7 +2987,6 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 // thermostatId may be a single thermostat only
 
 def getThermostatRevision(tstatType, thermostatId) {
-	log.trace 'getThermostatRevision> begin'
 	thermostatId = determine_tstat_id(thermostatId)
 	def ecobeeType = determine_ecobee_type_or_location(tstatType)
 	getThermostatSummary(ecobeeType)
@@ -3001,16 +3000,14 @@ def getThermostatRevision(tstatType, thermostatId) {
 		def runtimeRevision = thermostatDetails[5]
 		def intervalRevision = thermostatDetails[6]
 		if (thermostatId == id) {
-			log.debug "Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, interval: ${intervalRevision}"
 			sendEvent name: "runtimeRevision", value: runtimeRevision, displayed: true
 			sendEvent name: "thermostatRevision", value: thermostatRevision, displayed: false
 			sendEvent name: "alertsRevision", value: alertsRevision, displayed: false
 			sendEvent name: "intervalRevision", value: intervalRevision, displayed: false
 			if (settings.trace) {	
-				log.debug "getThermostatRevision> done for ${thermostatId}, intervalRevision=$intervalRevision, runtimeRevision=$runtimeRevision"
+				log.debug "getThermostatRevision> done for ${thermostatId}, Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, interval: ${intervalRevision}"
 			}
 			return
-			log.trace "getThermostatRevision> done!"
 		}
 	}
 }
@@ -3019,7 +3016,6 @@ def getThermostatRevision(tstatType, thermostatId) {
 // tstatType =managementSet or registered (no spaces). 
 // May also be set to a specific locationSet (ex./Toronto/Campus/BuildingA)
 void getThermostatSummary(tstatType) {
-	log.trace "getThermostatSummary()"
 	def bodyReq = build_body_request('thermostatSummary',tstatType,null,null)
 	if (settings.trace) {
 		log.debug "getThermostatSummary> about to call api with body = ${bodyReq}"
