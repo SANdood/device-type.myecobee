@@ -953,7 +953,7 @@ void poll() {
 }
 
 private void generateEvent(Map results) {
-	log.trace "generateEvent> begin"
+//	log.trace "generateEvent> begin"
 	
 	if (settings.trace) {
 		log.debug "generateEvent>parsing data $results"
@@ -1019,7 +1019,7 @@ private void generateEvent(Map results) {
 		}
 	}
 	log.debug "generateEvent> changedCount: ${changedCount}"
-	log.trace "generateEvent> done!"
+//	log.trace "generateEvent> done!"
 }
 
 private def getCurrentProgName() {
