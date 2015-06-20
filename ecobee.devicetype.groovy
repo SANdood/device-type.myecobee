@@ -756,33 +756,12 @@ void poll() {
 	def tstatId,ecobeeType
 	def thermostatId= determine_tstat_id("")
 
-	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
-	def time_check_for_poll = (now() - (poll_interval * 61 * 1000))
-	
-	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
-		if (settings.trace) {
-			log.debug "poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-			sendEvent name: "verboseTrace", value:
-				"poll>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-    	}
-    	log.trace 'poll> skipped - too soon'
-		return
-	}
-	
-	getThermostatRevision("", thermostatId)
-
-	def newRevision = device.currentValue('runtimeRevision')
-	if (settings.trace) {
-		log.debug ("getReportData>runtimetRevision=${state?.runtimeRevision},newRevision=${newRevision}...")
-	}
-	if ((state?.runtimeRevision != null) && (state?.runtimeRevision == newRevision)) {
-		state.lastPollTimestamp = now()    							// can't call thermostatSummary faster, either
+	def oldRevisions = state.lastRevisions
+	getThermostatInfo(thermostatId)
+	if (state.lastRevisions == oldRevisions) {
 		log.trace 'poll> skipped - no revisions'
 		return
 	}
-	state?.runtimeRevision = newRevision
-	
-	getThermostatInfo(thermostatId)
 
 	// determine if there is an event running
     
@@ -908,47 +887,39 @@ void poll() {
 	}
 	generateEvent(dataEvents)
 
-
-// Probably only need to send these once, or when they change (rarely)    
+// Only need to send these once, or when they change (rarely)    
 	if (data.thermostatList[0].settings.hasHumidifier) {
 		def humidifierMode = data.thermostatList[0].settings.humidifierMode
-		def isChange = isStateChange(device, 'humidifierMode', humidifierMode)
-        if (isChange) { 
-			sendEvent(name: 'humidifierMode', value: humidifierMode, displayed: true)
+		if (isStateChange(device, 'humidifierMode', humidifierMode)) {
+			sendEvent(name: 'humidifierMode', value: humidifierMode, isStateChange: true, displayed: true)
         }		
         def humidifierLevel = data.thermostatList[0].settings.humidity
-        isChange = isStateChange(device, 'humidifierLevel', humidifierLevel.toString())
-        if (isChange) {
-        	sendEvent(name: 'humidifierLevel', value: humidifierLevel, unit: "%", displayed: true)
+        if (isStateChange(device, 'humidifierLevel', humidifierLevel.toString())) {
+        	sendEvent(name: 'humidifierLevel', value: humidifierLevel, unit: "%", isStateChange: true, displayed: true)
         }
 	}
 	
 	if ((data.thermostatList[0].settings.hasDehumidifier) || (data.thermostatList[0].settings.dehumidifyWithAC)) {
 		def dehumidifierMode = data.thermostatList[0].settings.dehumidifierMode
-		def isChange = isStateChange(device, 'dehumidifierMode', dehumidifierMode)
-        if (isChange) { 
-			sendEvent(name: 'dehumidifierMode', value: dehumidifierMode, displayed: true)
+		if (isStateChange(device, 'dehumidifierMode', dehumidifierMode)) {
+			sendEvent(name: 'dehumidifierMode', value: dehumidifierMode, isStateChange: true, displayed: true)
         }		
         def dehumidifierLevel = data.thermostatList[0].settings.dehumidifierLevel
-        isChange = isStateChange(device, 'dehumidifierLevel', dehumidifierLevel.toString())
-        if (isChange) {
-        	sendEvent(name: 'dehumidifierLevel', value: dehumidifierLevel, unit: "%", displayed: true)
+        if (isStateChange(device, 'dehumidifierLevel', dehumidifierLevel.toString())) {
+        	sendEvent(name: 'dehumidifierLevel', value: dehumidifierLevel, unit: "%", isStateChange: true, displayed: true)
         }		
 	}
 	
 	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings.hasErv)) {
 		def ventilatorMonOnTime = data.thermostatList[0].settings.ventilatorMinOnTime
-		def isChange = isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime.toString())
-        if (isChange) { 
-			sendEvent(name: 'ventilatorMinOnTime', value: ventilatorMinOnTime, displayed: true)
+		if (isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime.toString())) {
+			sendEvent(name: 'ventilatorMinOnTime', value: ventilatorMinOnTime, isStateChange: true, displayed: true)
         }		
         def ventilatorMode = data.thermostatList[0].settings.vent
-        isChange = isStateChange(device, 'ventilatorMode', ventilatorMode)
-        if (isChange) {
-        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, displayed: true)
+        if (isStateChange(device, 'ventilatorMode', ventilatorMode)) {
+        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, isStateChange: true, displayed: true)
         }		
 	}
-    
     log.trace 'poll> done!'
 }
 
@@ -977,43 +948,38 @@ private void generateEvent(Map results) {
 					tempValue = getTemperature(value).toDouble().round(1)
 					tempValueString = String.format('%2.1f', tempValue)
 				}
-				def isChange = isTemperatureStateChange(device, name, tempValueString)
-                if (isChange) { 
+				if (isTemperatureStateChange(device, name, tempValueString)) {
                 	changedCount++ 
-					sendEvent(name: name, value: tempValueString, unit: scale, displayed: true)
+					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: true)
                 }
 
 // 			Temperature variable names contain 'temp' or 'setpoint' (not for display)           
 			} else if ((name.toUpperCase().contains("TEMP"))|| (name.toUpperCase().contains("SETPOINT"))) {  
 				Double tempValue = getTemperature(value).toDouble().round(1)
 				String tempValueString = String.format('%2.1f', tempValue)
-				def isChange = isTemperatureStateChange(device, name, tempValueString)
-                if (isChange) { 
+			if (isTemperatureStateChange(device, name, tempValueString)) {
                 	changedCount++
-					sendEvent(name: name, value: tempValueString, unit: scale, displayed: true)
+					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: true)
                 }
                 
 // 			Speed variable names contain 'speed'
 			} else if (name.toUpperCase().contains("SPEED")) { 
  				float speedValue = getSpeed(value).toFloat().round(1)
-				def isChange = isStateChange(device, name, speedValue.toString())
-                if (isChange) { 
+				if (isStateChange(device, name, speedValue.toString())) {
                 	changedCount++
-					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), displayed: true)
+					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), isStateChange: true, displayed: true)
                 }
                 
 			} else if (name.toUpperCase().contains("HUMIDITY")) {
  				float humidityValue = value.toFloat().round(1)
-				def isChange = isStateChange(device, name, humidityValue.toString())
-                if (isChange) { 
+				if (isStateChange(device, name, humidityValue.toString())) {
                 	changedCount++ 
-					sendEvent(name: name, value: humidityValue.toString(), unit: "%", displayed: true)
+					sendEvent(name: name, value: humidityValue.toString(), unit: "%", isStateChange: true, displayed: true)
                 }					
  			} else {
-				def isChange = isStateChange(device, name, value)
-                if (isChange) { 
+				if (isStateChange(device, name, value)) {
                 	changedCount++ 
-					sendEvent(name: name, value: value, isStateChange: isChange, displayed: true)
+					sendEvent(name: name, value: value, isStateChange: true, displayed: true)
                 }
 			}
 		}
@@ -2433,17 +2399,20 @@ void getReportData(thermostatId, startDateTime, endDateTime, startInterval, endI
 // Check the thermostat Revision in order to avoid polling ecobee servers unnecessarily 
     
 	getThermostatRevision("", thermostatId)
-	def newRevision = device.currentValue('thermostatRevision')
-	if (settings.trace) {
-		log.debug ("getReportData>thermostatRevision=${state?.thermostatRevision},newRevision=${newRevision}...")
-	}
-	if ((state?.thermostatRevision != null) && (state?.thermostatRevision == newRevision)) {
-
-		return
 	
+	// we don't care about alerts or runtime data Revisions
+	def newRevisions = device.currentValue('thermostatRevision') + device.currentValue('intervalRevision')
+	if (settings.trace) {
+		log.debug ("getReportData>lastRevisions=${state?.tstatRevisions}, newRevisions=${newRevisions}...")
 	}
-	state?.thermostatRevision = newRevision
-    
+	if ((state?.tstatRevisions != null) && (state?.tstatRevisions == newRevisions)) {
+		log.trace 'getReportData> skipped - no revisions'
+		return
+	}
+	state?.tstatRevisions = newRevisions	// use a different state variable for tracking runtime reports
+
+// OK, something has changed since our last check on thermostatRevision, let's DO THIS!
+
 	beginInt = (startInterval == null)? get_interval(startDateTime): startInterval.toInteger()
 	endInt = (endInterval == null)? get_interval(endDateTime): endInterval.toInteger()
 	Calendar startCalendar = startDateTime.toCalendar()
@@ -2775,18 +2744,18 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 
 	if ((thermostatId != null) && (thermostatId != "")) {
 		if (thermostatId.contains(",")) {
-        
 			if (settings.trace) {
 				sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
 				log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
 			}
 			return
 		}
-//		getThermostatInfo(thermostatId)   
-		log.trace "generateRemoteSensorEvents> poll()"
-		poll()
+	} else {
+		thermostatId = determine_tstat_id(thermostatId)
 	}
-	thermostatId = determine_tstat_id(thermostatId)
+//		getThermostatInfo(thermostatId)   // This doesn't update the attributes, so we poll() instead
+	log.trace "generateRemoteSensorEvents> poll()"
+	poll()
 
 /* Reset all remote sensor data values */
 	def remoteData = []
@@ -2794,8 +2763,6 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def remoteHumData = ""
 	def remoteOccData = ""
 	
-
-    
 	if (data.thermostatList[0].remoteSensors?.size() > 0) {
 		for (i in 0..data.thermostatList[0].remoteSensors.size() - 1) {
 			if (settings.trace) {
@@ -2896,22 +2863,23 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 // thermostatId may be a list of serial# separated by ",", no spaces (ex. '123456789012,123456789013') 
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
 void getThermostatInfo(thermostatId=settings.thermostatId) {
-	
-	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
-	def time_check_for_poll = (now() - (poll_interval * 61 * 1000))
-	
-	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
-		if (settings.trace) {
-			log.debug "getThermostatInfo>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-			sendEvent name: "verboseTrace", value:
-				"getThermostatInfo>thermostatId = ${thermostatId},time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
-    	}
-    	log.trace 'getThermostatInfo> skipped'
+	log.trace 'getThermostatInfo> begin'
+
+	getThermostatRevision("", thermostatId)
+
+	def newRevisions = device.currentValue('thermostatRevision') + device.currentValue('alertsRevision') + 
+		device.currentValue('runtimeRevision') + device.currentValue('intervalRevision')
+	if (settings.trace) {
+		log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
+	}
+	if ((state?.lastRevisions != null) && (state?.lastRevisions == newRevisions)) {
+		log.trace 'getThermostatInfo> skipped - no revisions'
 		return
 	}
-//	state.lastPollTimestamp = now()	// moved to end, in case error with ecobee API or ExecutionTimeout
-	log.trace 'getThermostatInfo> begin'
-	
+	state?.lastRevisions = newRevisions
+
+// OK, something has changed since our last check on thermostatRevision, let's DO THIS!
+
 	if (settings.trace) {
 		log.debug "getThermostatInfo> about to call build_body_request for thermostatId = ${thermostatId}..."
 	}
@@ -2976,7 +2944,6 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 			} /* end if statusCode */                 
 		} /* end api call */
 	} /* end while */
-	state.lastPollTimestamp = now()
 	log.trace "getThermostatInfo> done!"
 }
 
@@ -2988,22 +2955,32 @@ def getThermostatRevision(tstatType, thermostatId) {
 	thermostatId = determine_tstat_id(thermostatId)
 	def ecobeeType = determine_ecobee_type_or_location(tstatType)
 	getThermostatSummary(ecobeeType)
+	
 	for (i in 0..data.thermostatCount - 1) {
 		def thermostatDetails = data.revisionList[i].split(':')
-		def id = thermostatDetails[0]
-		def thermostatName = thermostatDetails[1]
-		def connected = thermostatDetails[2]
-		def thermostatRevision = thermostatDetails[3]
-		def alertsRevision = thermostatDetails[4]
-		def runtimeRevision = thermostatDetails[5]
-		def intervalRevision = thermostatDetails[6]
+		String id = thermostatDetails[0]
 		if (thermostatId == id) {
-			sendEvent name: "runtimeRevision", value: runtimeRevision, displayed: false
-			sendEvent name: "thermostatRevision", value: thermostatRevision, displayed: false
-			sendEvent name: "alertsRevision", value: alertsRevision, displayed: false
-			sendEvent name: "intervalRevision", value: intervalRevision, displayed: false
+			String thermostatName = thermostatDetails[1]
+//			def connected = thermostatDetails[2]
+			String thermostatRevision = thermostatDetails[3]
+			String alertsRevision = thermostatDetails[4]
+			String runtimeRevision = thermostatDetails[5]
+			String intervalRevision = thermostatDetails[6]
+
+			if (isStateChange(device, 'runTimeRevision', runTimeRevision)) {
+				sendEvent name: 'runtimeRevision', value: runtimeRevision, isStateChange: true, displayed: false
+			}
+			if (isStateChange(device, 'thermostatRevision', thermostatRevision)) {
+				sendEvent name: 'thermostatRevision', value: thermostatRevision, isStateChange: true, displayed: false
+			}
+			if (isStateChange(device, 'alertsRevision', alertsRevision)) {
+				sendEvent name: 'alertsRevision', value: alertsRevision, isStateChange: true, displayed: false
+			}
+			if (isStateChange(device, 'intervalRevision', intervalRevision)) {
+				sendEvent name: 'intervalRevision', value: intervalRevision, isStateChange: true, displayed: false
+			}
 			if (settings.trace) {	
-				log.debug "getThermostatRevision> done for ${thermostatId}, Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, interval: ${intervalRevision}"
+				log.debug "getThermostatRevision> done for ${thermostatName}, Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, interval: ${intervalRevision}"
 			}
 			return
 		}
@@ -3014,6 +2991,22 @@ def getThermostatRevision(tstatType, thermostatId) {
 // tstatType =managementSet or registered (no spaces). 
 // May also be set to a specific locationSet (ex./Toronto/Campus/BuildingA)
 void getThermostatSummary(tstatType) {
+
+// Ecobee's thermostatSummary cannot be called more frequently than once per 3 minutes
+	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
+	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
+	
+	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
+		if (settings.trace) {
+			log.debug "getThermostatSummary> time_check_for_poll (${time_check_for_poll}) < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+			sendEvent name: "verboseTrace", value:
+				"getThermostatSummary>time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
+    	}
+    	log.trace 'getThermostatSummary> skipped - too soon'
+		return		// apps will use existing data instead of new...
+	}
+	state.lastPollTimestamp = now()
+	log.trace 'getThermostatSummary> polling'
 	def bodyReq = build_body_request('thermostatSummary',tstatType,null,null)
 	if (settings.trace) {
 		log.debug "getThermostatSummary> about to call api with body = ${bodyReq}"
@@ -3030,15 +3023,15 @@ void getThermostatSummary(tstatType) {
 				data?.statusList = resp.data.statusList
 				data?.thermostatCount = data.revisionList.size()
 				for (i in 0..data.thermostatCount - 1) {
-					def thermostatDetails = data.revisionList[i].split(':')
-					def thermostatId = thermostatDetails[0]
-					def thermostatName = thermostatDetails[1]
-					def connected = thermostatDetails[2]
-//					def thermostatRevision = thermostatDetails[3]
-//					def alertRevision = thermostatDetails[4]
-//					def runtimeRevision = thermostatDetails[5]
-//					def intervalRevision = thermostatDetails[6]
-					if (settings.trace) {
+					if (settings.trace) {					
+						def thermostatDetails = data.revisionList[i].split(':')
+						def thermostatId = thermostatDetails[0]
+						def thermostatName = thermostatDetails[1]
+						def connected = thermostatDetails[2]
+//						def thermostatRevision = thermostatDetails[3]
+//						def alertRevision = thermostatDetails[4]
+//						def runtimeRevision = thermostatDetails[5]
+//						def intervalRevision = thermostatDetails[6]
 						log.debug "getThermostatSummary>thermostatId=${thermostatId},name=${thermostatName},connected =${connected}"
 						sendEvent name: "verboseTrace", value:
 							"getTstatSummary> found ${thermostatId},name=${thermostatName},connected=${connected}"
@@ -3428,11 +3421,12 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 		log.debug "initialSetup>end"
 	}
 	state.lastPollTimestamp = null
+	state.lastRevisions = null
+	state.tstatRevisions = null
 	getThermostatInfo(thermostatId)
 	def ecobeeType=determine_ecobee_type_or_location("")
 	data.auth.ecobeeType = ecobeeType
 	state.exceptionCount=0    
-	state.lastPollTimestamp = 0
 }
 
 def toQueryString(Map m) {
