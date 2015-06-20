@@ -927,9 +927,9 @@ void poll() {
 private void generateEvent(Map results) {
 //	log.trace "generateEvent> begin"
 	
-//	if (settings.trace) {
+	if (settings.trace) {
 		log.debug "generateEvent>parsing data $results"
-//	}
+	}
     
     def scale = getTemperatureScale()
     def changedCount = 0
