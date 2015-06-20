@@ -760,6 +760,7 @@ void poll() {
 	getThermostatInfo(thermostatId)
 	if (state.lastRevisions == oldRevisions) {
 		log.trace 'poll> skipped - no revisions'
+//		log.trace 'poll> WouldSkip'
 		return
 	}
 
@@ -926,17 +927,19 @@ void poll() {
 private void generateEvent(Map results) {
 //	log.trace "generateEvent> begin"
 	
-	if (settings.trace) {
+//	if (settings.trace) {
 		log.debug "generateEvent>parsing data $results"
-	}
+//	}
     
     def scale = getTemperatureScale()
     def changedCount = 0
     
 	if(results) {
 		results.each { name, value ->
-			def isDisplayed = true
-
+			boolean isDisplayed = true
+			if (name.toUpperCase().contains("REMOTESENSOR")) {
+				isDisplayed = false		// will get displayed by the devices themselves
+			}
 // 			Temperature variable names for display contain 'display'            
 			if (name.toUpperCase().contains("DISPLAY")) {  
 				String tempValueString 
@@ -950,7 +953,7 @@ private void generateEvent(Map results) {
 				}
 				if (isTemperatureStateChange(device, name, tempValueString)) {
                 	changedCount++ 
-					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: true)
+					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: isDisplayed)
                 }
 
 // 			Temperature variable names contain 'temp' or 'setpoint' (not for display)           
@@ -959,7 +962,7 @@ private void generateEvent(Map results) {
 				String tempValueString = String.format('%2.1f', tempValue)
 			if (isTemperatureStateChange(device, name, tempValueString)) {
                 	changedCount++
-					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: true)
+					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: isDisplayed)
                 }
                 
 // 			Speed variable names contain 'speed'
@@ -967,19 +970,19 @@ private void generateEvent(Map results) {
  				float speedValue = getSpeed(value).toFloat().round(1)
 				if (isStateChange(device, name, speedValue.toString())) {
                 	changedCount++
-					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), isStateChange: true, displayed: true)
+					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), isStateChange: true, displayed: isDisplayed)
                 }
                 
 			} else if (name.toUpperCase().contains("HUMIDITY")) {
  				float humidityValue = value.toFloat().round(1)
 				if (isStateChange(device, name, humidityValue.toString())) {
                 	changedCount++ 
-					sendEvent(name: name, value: humidityValue.toString(), unit: "%", isStateChange: true, displayed: true)
+					sendEvent(name: name, value: humidityValue.toString(), unit: "%", isStateChange: true, displayed: isDisplayed)
                 }					
  			} else {
 				if (isStateChange(device, name, value)) {
                 	changedCount++ 
-					sendEvent(name: name, value: value, isStateChange: true, displayed: true)
+					sendEvent(name: name, value: value, isStateChange: true, displayed: isDisplayed)
                 }
 			}
 		}
@@ -2750,12 +2753,9 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 			}
 			return
 		}
-	} else {
-		thermostatId = determine_tstat_id(thermostatId)
+		getThermostatInfo(thermostatId)  // should be poll(), so that tiles are updated
 	}
-//		getThermostatInfo(thermostatId)   // This doesn't update the attributes, so we poll() instead
-	log.trace "generateRemoteSensorEvents> poll()"
-	poll()
+	thermostatId = determine_tstat_id(thermostatId)
 
 /* Reset all remote sensor data values */
 	def remoteData = []
@@ -2818,11 +2818,12 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 					}
 				} else if (data.thermostatList[0].remoteSensors[i].capability[j].type == REMOTE_SENSOR_OCCUPANCY) {
 					/* value = "unknown" ??? */
-					remoteOccData = remoteOccData + data.thermostatList[0].remoteSensors[i].id + "," + 
-						data.thermostatList[0].remoteSensors[i].name + "," +
-						data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
+					if (data.thermostatList[0].remoteSensors[i].capability[j].value != 'unknown') {
+						remoteOccData = remoteOccData + data.thermostatList[0].remoteSensors[i].id + "," + 
+							data.thermostatList[0].remoteSensors[i].name + "," +
+							data.thermostatList[0].remoteSensors[i].capability[j].type + "," + data.thermostatList[0].remoteSensors[i].capability[j].value + ",,"
+					}
 				} 
-				                        
 			} /* end for remoteSensor Capabilites */
 		} /* end for remoteSensor data */
 	}                        
@@ -2844,8 +2845,12 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 		if (settings.trace) {
 			log.debug "generateRemoteSensorEvents>avgHum for remote sensors= ${avgHum},totalHum=${totalHum},nbHumSensors=${nbHumSensorInUse}"
 		}
-		remoteSensorEvents = remoteSensorEvents + [remoteSensorHumData: "${remoteHumData.toString()}",remoteSensorAvgHumidity: avgHum,	
-			remoteSensorMinHumidity: ((minHum!=null)?minHum:0),	remoteSensorMaxHumidity: maxHum]        
+		remoteSensorEvents = remoteSensorEvents + [
+			remoteSensorHumData: "${remoteHumData.toString()}",
+			remoteSensorAvgHumidity: avgHum,	
+			remoteSensorMinHumidity: ((minHum!=null)?minHum:0),
+			remoteSensorMaxHumidity: maxHum
+		]        
 	}                        
 	def remoteDataJson=""
  	if (remoteData != []) {
@@ -2867,14 +2872,18 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 
 	getThermostatRevision("", thermostatId)
 
-	def newRevisions = device.currentValue('thermostatRevision') + device.currentValue('alertsRevision') + 
-		device.currentValue('runtimeRevision') + device.currentValue('intervalRevision')
+	// Use all Revisions combined, sorted by frequency of updates to minimize CPU comparison time
+	// We only care about intervals in getReportData()
+	def newRevisions = device.currentValue('runtimeRevision') + /* device.currentValue('intervalRevision') + */
+		device.currentValue('alertsRevision') + device.currentValue('thermostatRevision') 
+		 
 	if (settings.trace) {
 		log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
 	}
 	if ((state?.lastRevisions != null) && (state?.lastRevisions == newRevisions)) {
 		log.trace 'getThermostatInfo> skipped - no revisions'
 		return
+//		log.trace 'getThermostatInfo> Would Skip!'
 	}
 	state?.lastRevisions = newRevisions
 
@@ -2967,16 +2976,20 @@ def getThermostatRevision(tstatType, thermostatId) {
 			String runtimeRevision = thermostatDetails[5]
 			String intervalRevision = thermostatDetails[6]
 
-			if (isStateChange(device, 'runTimeRevision', runTimeRevision)) {
+			if (isStateChange(device, 'runtimeRevision', runtimeRevision)) {
+//				log.trace 'getThermostatRevision> updating runtimeRevision'
 				sendEvent name: 'runtimeRevision', value: runtimeRevision, isStateChange: true, displayed: false
 			}
 			if (isStateChange(device, 'thermostatRevision', thermostatRevision)) {
+//				log.trace 'getThermostatRevision> updating thermostatRevision'				
 				sendEvent name: 'thermostatRevision', value: thermostatRevision, isStateChange: true, displayed: false
 			}
 			if (isStateChange(device, 'alertsRevision', alertsRevision)) {
+//				log.trace 'getThermostatRevision> updating alertsRevision'				
 				sendEvent name: 'alertsRevision', value: alertsRevision, isStateChange: true, displayed: false
 			}
 			if (isStateChange(device, 'intervalRevision', intervalRevision)) {
+//				log.trace 'getThermostatRevision> updating intervalRevision'				
 				sendEvent name: 'intervalRevision', value: intervalRevision, isStateChange: true, displayed: false
 			}
 			if (settings.trace) {	
@@ -3398,9 +3411,12 @@ private def get_appKey() {
 
 // Called by My ecobee Init for initial creation of a child Device
 void initialSetup(device_client_id, auth_data, device_tstat_id) {
+	log.trace 'initialSetup> begin'
 /*
 	settings.trace='true'
 */	
+settings.trace = ""
+
 	if (settings.trace) {
 		log.debug "initialSetup>begin"
 		log.debug "initialSetup> device_tstat_Id = ${device_tstat_id}"
