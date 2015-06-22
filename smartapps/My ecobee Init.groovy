@@ -376,8 +376,8 @@ def takeAction() {
 		d.poll()
 	}
 	
-    Integer pollTimer = 19*60
-    Integer longDelayTimer = (pollTimer*2)+240	
+    Integer pollTimer = 60
+    Integer longDelayTimer = pollTimer*3	
     
     runIn(pollTimer, takeAction, [overwrite: true])
 	runIn(longDelayTimer, longDelay, [overwrite: true])
