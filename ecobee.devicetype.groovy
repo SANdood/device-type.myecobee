@@ -527,20 +527,23 @@ void setHeatingSetpoint(temp) {
 		null, null)
 	sendEvent(name: 'heatingSetpoint', value: temp,unit: getTemperatureScale())
 	def currentMode = device.currentValue("thermostatMode")
-	if (currentMode=='heat') {
-		sendEvent("name":"thermostatSetpoint", "value": temp,unit: getTemperatureScale())     
-	}
+	if ((currentMode=='heat') || (currentMode=='auto')) {
+		sendEvent(name: 'thermostatSetpoint', value: temp,unit: getTemperatureScale())     
+	} 
 }
 
+
 void setCoolingSetpoint(temp) {
-	def thermostatId= determine_tstat_id("") 	    
-	setHold(settings.thermostatId, temp, device.currentValue("heatingSetpoint"),
+	setHold("", temp, device.currentValue("heatingSetpoint"),
 		null, null)
-	sendEvent(name: 'coolingSetpoint', value: temp,unit: getTemperatureScale())
+
 	def currentMode = device.currentValue("thermostatMode")
-	if (currentMode=='cool') {
-		sendEvent("name":"thermostatSetpoint", "value": temp,unit: getTemperatureScale())     
+	sendEvent(name: 'coolingSetpoint', value: temp, unit: getTemperatureScale())
+	sendEvent(name: 'coolingSetpointDisplay', value: temp, unit: getTemperatureScale())
+	if ((currentMode=='cool') || (currentMode=='auto')) {
+		sendEvent(name:'thermostatSetpoint', value: temp, unit: getTemperatureScale())     
 	}
+
 }
 
 void off() {
@@ -751,9 +754,9 @@ def parse(String description) {
 }
 
 void poll() {
-	if (settings.trace) {
+//	if (settings.trace) {
 		log.trace 'poll> begin'
-	}
+//	}
 	
 	def tstatId,ecobeeType
 	def thermostatId= determine_tstat_id("")
@@ -761,9 +764,9 @@ void poll() {
 	def oldRevisions = state.lastRevisions
 	getThermostatInfo(thermostatId)
 	if (state.lastRevisions == oldRevisions) {
-		if (settings.trace) {
+//		if (settings.trace) {
 			log.trace 'poll> skipped - no revisions'
-		}
+//		}
 		return
 	}
 
@@ -3013,7 +3016,7 @@ def getThermostatRevision(tstatType, thermostatId) {
 void getThermostatSummary(tstatType) {
 
 // Ecobee's thermostatSummary cannot be called more frequently than once per 3 minutes
-	def poll_interval=3   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
+	def poll_interval= 0.25   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
 	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
 	
 	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
