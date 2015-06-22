@@ -751,7 +751,9 @@ def parse(String description) {
 }
 
 void poll() {
-	log.trace 'poll> begin'
+	if (settings.trace) {
+		log.trace 'poll> begin'
+	}
 	
 	def tstatId,ecobeeType
 	def thermostatId= determine_tstat_id("")
@@ -759,8 +761,9 @@ void poll() {
 	def oldRevisions = state.lastRevisions
 	getThermostatInfo(thermostatId)
 	if (state.lastRevisions == oldRevisions) {
-		log.trace 'poll> skipped - no revisions'
-//		log.trace 'poll> WouldSkip'
+		if (settings.trace) {
+			log.trace 'poll> skipped - no revisions'
+		}
 		return
 	}
 
@@ -921,12 +924,12 @@ void poll() {
         	sendEvent(name: 'ventilatorMode', value: ventilatorMode, isStateChange: true, displayed: true)
         }		
 	}
-    log.trace 'poll> done!'
+	if (settings.trace) {
+	    log.trace 'poll> done!'
+	}
 }
 
 private void generateEvent(Map results) {
-//	log.trace "generateEvent> begin"
-	
 	if (settings.trace) {
 		log.debug "generateEvent>parsing data $results"
 	}
@@ -987,8 +990,7 @@ private void generateEvent(Map results) {
 			}
 		}
 	}
-	log.debug "generateEvent> changedCount: ${changedCount}"
-//	log.trace "generateEvent> done!"
+	log.info "generateEvent> changedCount: ${changedCount}"
 }
 
 private def getCurrentProgName() {
@@ -1078,13 +1080,13 @@ def getEquipmentStatus() {
 		.thermostatList[0].equipmentStatus + ' running' : 'Idle'
 	return equipStatus
 }
+
 // Get the basic thermostat status (heating,cooling,fan only)
 // To be called after a poll() or refresh() to have the latest status
-
 def getThermostatOperatingState() {
 
 //	def equipStatus = device.currentValue("equipmentStatus") // this gets the OLD equipmentStatus from prior poll()
-	def equipStatus = getEquipmentStatus()
+	def equipStatus = getEquipmentStatus()		// Since we are called in poll(), have to go to the current data
 	if (equipStatus == null) 
  		return ""
 	
@@ -1122,6 +1124,7 @@ void resumeThisTstat() {
 	log.trace "resumeThisTstat> poll()"
 	poll()
 }
+
 private void api(method, args, success = {}) {
 	def MAX_EXCEPTION_COUNT=5
 	String URI_ROOT = "${get_URI_ROOT()}/1"
@@ -2743,14 +2746,14 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def minTemp=null
 	def minHum=null
 	
-	log.trace "generateRemoteSensorEvents> begin"
+	if (settings.trace) {
+		log.trace "generateRemoteSensorEvents> begin"
+	}
 
 	if ((thermostatId != null) && (thermostatId != "")) {
 		if (thermostatId.contains(",")) {
-			if (settings.trace) {
-				sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
-				log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
-			}
+			sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
+			log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
 			return
 		}
 		getThermostatInfo(thermostatId)  // should be poll(), so that tiles are updated
@@ -2862,14 +2865,18 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 		log.debug "generateRemoteSensorEvents>remoteSensorEvents to be sent= ${remoteSensorEvents}"
 	}
 	generateEvent(remoteSensorEvents)
-	log.trace "generateRemoteSensorEvents> done!"
+	if (settings.trace) {
+		log.trace "generateRemoteSensorEvents> done!"
+	}
 }
     
 // thermostatId may be a list of serial# separated by ",", no spaces (ex. '123456789012,123456789013') 
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
 void getThermostatInfo(thermostatId=settings.thermostatId) {
-	log.trace 'getThermostatInfo> begin'
-
+	if (settings.trace) {
+		log.trace 'getThermostatInfo> begin'
+	}
+	
 	getThermostatRevision("", thermostatId)
 
 	// Use all Revisions combined, sorted by frequency of updates to minimize CPU comparison time
@@ -2881,7 +2888,9 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 		log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
 	}
 	if ((state?.lastRevisions != null) && (state?.lastRevisions == newRevisions)) {
-		log.trace 'getThermostatInfo> skipped - no revisions'
+		if (settings.trace) {
+			log.trace 'getThermostatInfo> skipped - no revisions'
+		}
 		return
 //		log.trace 'getThermostatInfo> Would Skip!'
 	}
@@ -2953,7 +2962,9 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 			} /* end if statusCode */                 
 		} /* end api call */
 	} /* end while */
-	log.trace "getThermostatInfo> done!"
+	if (settings.trace) {
+		log.trace "getThermostatInfo> done!"
+	}
 }
 
 // tstatType =managementSet or registered (no spaces). 
@@ -2977,19 +2988,15 @@ def getThermostatRevision(tstatType, thermostatId) {
 			String intervalRevision = thermostatDetails[6]
 
 			if (isStateChange(device, 'runtimeRevision', runtimeRevision)) {
-//				log.trace 'getThermostatRevision> updating runtimeRevision'
 				sendEvent name: 'runtimeRevision', value: runtimeRevision, isStateChange: true, displayed: false
 			}
 			if (isStateChange(device, 'thermostatRevision', thermostatRevision)) {
-//				log.trace 'getThermostatRevision> updating thermostatRevision'				
 				sendEvent name: 'thermostatRevision', value: thermostatRevision, isStateChange: true, displayed: false
 			}
 			if (isStateChange(device, 'alertsRevision', alertsRevision)) {
-//				log.trace 'getThermostatRevision> updating alertsRevision'				
 				sendEvent name: 'alertsRevision', value: alertsRevision, isStateChange: true, displayed: false
 			}
 			if (isStateChange(device, 'intervalRevision', intervalRevision)) {
-//				log.trace 'getThermostatRevision> updating intervalRevision'				
 				sendEvent name: 'intervalRevision', value: intervalRevision, isStateChange: true, displayed: false
 			}
 			if (settings.trace) {	
@@ -3015,11 +3022,16 @@ void getThermostatSummary(tstatType) {
 			sendEvent name: "verboseTrace", value:
 				"getThermostatSummary>time_check_for_poll (${time_check_for_poll} < state.lastPollTimestamp (${state.lastPollTimestamp}), not refreshing data..."
     	}
-    	log.trace 'getThermostatSummary> skipped - too soon'
+		if (settings.trace) {
+	    	log.trace 'getThermostatSummary> skipped - too soon'
+		}
 		return		// apps will use existing data instead of new...
 	}
 	state.lastPollTimestamp = now()
-	log.trace 'getThermostatSummary> polling'
+	
+	if (settings.trace) {
+		log.trace 'getThermostatSummary> polling'
+	}
 	def bodyReq = build_body_request('thermostatSummary',tstatType,null,null)
 	if (settings.trace) {
 		log.debug "getThermostatSummary> about to call api with body = ${bodyReq}"
@@ -3078,7 +3090,6 @@ private def refresh_tokens() {
 					"refresh_tokens>token not expired, workaround to avoid unauthorized exception, returning..."
 		}
 		return true        
-		
 	}    
     
 	def method = 
@@ -3150,6 +3161,7 @@ private def refresh_tokens() {
 	}
 	return true
 }
+
 void refreshChildTokens(auth) {
 	if (settings.trace) {
 		log.debug "refreshChildTokens>begin token auth= $auth"
@@ -3316,6 +3328,7 @@ void setAuthTokens() {
 		}
 	}
 }
+
 private def isLoggedIn() {
 	if (data.auth == null) {
 		if (settings.trace) {
@@ -3332,6 +3345,7 @@ private def isLoggedIn() {
 	}
 	return true
 }
+
 private def isTokenExpired() {
 	def buffer_time_expiration=5   // set a 5 min. buffer time before token expiration to avoid auth_err 
 	def time_check_for_exp = now() + (buffer_time_expiration * 60 * 1000);
@@ -3349,7 +3363,6 @@ private def isTokenExpired() {
 	}
 	return true
 }
-
 
 // Determine ecobee type from tstatType or settings
 // tstatType =managementSet or registered (no spaces). 
@@ -3415,7 +3428,6 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 /*
 	settings.trace='true'
 */	
-settings.trace = ""
 
 	if (settings.trace) {
 		log.debug "initialSetup>begin"
@@ -3448,7 +3460,6 @@ settings.trace = ""
 def toQueryString(Map m) {
 	return m.collect { k, v -> "${k}=${URLEncoder.encode(v.toString())}" }.sort().join("&")
 }
-
 private def cToF(temp) {
 	return (temp * 1.8 + 32)
 }
