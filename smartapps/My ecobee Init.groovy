@@ -126,6 +126,10 @@ def ecobeeDeviceList() {
 			paragraph "Tap below to see the list of ecobee thermostats available in your ecobee account and select the ones you want to connect to SmartThings (3 max per page)."
 			input(name: "thermostats", title:"", type: "enum", required:true, multiple:true, description: "Tap to choose", metadata:[values:stats])
 		}
+		
+	    section("Use schedule/runIn watchdog") {
+    		input "watchdogSwitch", "capability.switch", title: "Select watchdog switch", multiple: false, required: false
+    	}
 	}
 
 	log.debug "list p: $p"
@@ -365,6 +369,10 @@ def initialize() {
 	delete_child_devices()	
 	create_child_devices()
 
+	if (watchdogSwitch) {
+    	subscribe( watchdogSwitch, "switch.on", watchdogHandler)
+    }
+    
 	takeAction()
 }
 
@@ -377,7 +385,7 @@ def takeAction() {
 	}
 	
     Integer pollTimer = 60
-    Integer longDelayTimer = pollTimer*3	
+    Integer longDelayTimer = pollTimer*2.25	
     
     runIn(pollTimer, takeAction, [overwrite: true])
 	runIn(longDelayTimer, longDelay, [overwrite: true])
@@ -387,10 +395,24 @@ def takeAction() {
 
 def longDelay() {
 	log.trace "********longDelay********"
-    
+
+    if (watchdogSwitch) {
+    	if (watchdogSwitch.currentSwitch == 'off') {
+    		unsubscribe()
+        	watchdogSwitch.on()							// let everyone know we missed one
+    		subscribe( watchdogSwitch, "switch.on", watchdogHandler)
+        }
+    }
+  
     takeAction()
-        
-//    sendPush( "${location.name} MyEcobeeInit: ***longDelay***" )
+}
+
+// If someone turns this switch on, we need assume we're dead too!
+def watchdogHandler( evt ) {
+	log.debug ">>>>>>> watchdog <<<<<<<"
+    
+    unschedule()
+    takeAction()
 }
 
 def oauthInitUrl() {
