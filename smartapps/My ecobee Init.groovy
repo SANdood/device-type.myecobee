@@ -390,7 +390,7 @@ def longDelay() {
     
     takeAction()
         
-    sendPush( "${location.name} MyEcobeeInit: ***longDelay***" )
+//    sendPush( "${location.name} MyEcobeeInit: ***longDelay***" )
 }
 
 def oauthInitUrl() {
