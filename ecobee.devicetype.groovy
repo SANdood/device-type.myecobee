@@ -1088,10 +1088,7 @@ def getEquipmentStatus() {
 // To be called after a poll() or refresh() to have the latest status
 def getThermostatOperatingState() {
 
-//	def equipStatus = device.currentValue("equipmentStatus") // this gets the OLD equipmentStatus from prior poll()
-	def equipStatus = getEquipmentStatus()		// Since we are called in poll(), have to go to the current data
-	if (equipStatus == null) 
- 		return ""
+	def equipStatus = getEquipmentStatus()
 	
 	equipStatus = equipStatus.trim().toUpperCase()
     
@@ -1231,28 +1228,34 @@ private void doRequest(uri, args, type, success) {
 
 	} catch (java.net.UnknownHostException e) {
 		log.error "doRequest> Unknown host - check the URL " + params.uri
-		sendEvent name: "verboseTrace", value: "doRequest> Unknown host"
-		state.exceptionCount++        
+		sendEvent name: "verboseTrace", value: "doRequest> Unknown host ${params.uri}"
+		state.exceptionCount = state.exceptiionCount +1
+		throw e
 	} catch (java.net.NoRouteToHostException e) {
 		log.error "doRequest> No route to host - check the URL " + params.uri
-		sendEvent name: "verboseTrace", value: "doRequest> No route to host"
-		state.exceptionCount++  
-  	} catch (javax.net.ssl.SSLHandshakeException e) {
-    	log.error "doRequest> SSL Handshake Exception : " + params.uri
-    	sendEvent name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
-        state.exceptionCount++
-  	} catch (java.util.concurrent.TimeoutException e) {
-  		log.error "doRequest> Timeout Exception - ecobee host busy/down?"
-  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
-  		state.exceptionCount++
-	} catch (groovyx.net.http.HttpResponseException e) {
-		log.error "doRequest> HTTPResponseException - ${e.getMessage()}"
-		state.exceptionCount = state.exceptionCount + 3  // let's try to fix in after 2 failures
+		sendEvent name: "verboseTrace", value: "doRequest> No route to host ${params.uri}"
+		state.exceptionCount = state.exceptiionCount +1
+		throw e
+//  	} catch (javax.net.ssl.SSLHandshakeException e) {
+//    	log.error "doRequest> SSL Handshake Exception : " + params.uri
+//    	sendEvent name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
+//        state.exceptionCount = state.exceptiionCount +1
+//		throw e
+//  	} catch (java.util.concurrent.TimeoutException e) {
+//  		log.error "doRequest> Timeout Exception - ecobee host busy/down?"
+//  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
+//  		state.exceptionCount = state.exceptiionCount +1
+//		throw e
+//	} catch (groovyx.net.http.HttpResponseException e) {
+//		log.error "doRequest> HTTPResponseException - ${e.getMessage()}"
+//		state.exceptionCount = state.exceptionCount + 3  // let's try to fix in after 2 failures
+//		throw e
 	} catch (e) {
-		log.debug "doRequest>exception $e for " + params.uri + " " + params.body
+		log.debug "doRequest>exception $e for " + params.body
 		sendEvent name: "verboseTrace", value:
-			"doRequest>exception $e for " + params.uri + " " + params.body
-		state.exceptionCount++    
+			"doRequest>exception $e for " + params.body
+		state.exceptionCount = state.exceptiionCount +1
+		throw e    
 	}
 }
 
@@ -3123,29 +3126,29 @@ private def refresh_tokens() {
 		httpPostJson(method, successRefreshTokens)
 	} catch (java.net.UnknownHostException e) {
 		log.error "refresh_tokens> Unknown host - check the URL " + method.uri
-		sendEvent name: "verboseTrace", value: "refresh_tokens> Unknown host"
-		state.exceptionCount++        
+		sendEvent name: "verboseTrace", value: "refresh_tokens> Unknown host ${method.uri}"
+		state.exceptionCount = state.exceptionCount +1      
 		return false
 	} catch (java.net.NoRouteToHostException e) {
 		log.error "refresh_tokens> No route to host - check the URL " + method.uri
 		sendEvent name: "verboseTrace", value: "refresh_tokens> No route to host"
-		state.exceptionCount++        
+		state.exceptionCount = state.exceptionCount +1        
 		return false
-	} catch (javax.net.ssl.SSLHandshakeException e) {
-    	log.error "refresh_tokens> SSL Handshake Exception at " + method.uri
-    	sendEvent name: "verboseTrace", value: "refresh_tokens> SSL Handshake Exception"
-        state.exceptionCount++
-        return false
-    } catch (java.util.concurrent.TimeoutException e) {
-  		log.error "refresh_tokens> Timeout Exception - ecobee host busy/down?"
-  		sendEvent name: "verboseTrace", value: "refresh_tokens> Execution timeout"
-  		state.exceptionCount++
-  		return false
+//	} catch (javax.net.ssl.SSLHandshakeException e) {
+//    	log.error "refresh_tokens> SSL Handshake Exception at " + method.uri
+//    	sendEvent name: "verboseTrace", value: "refresh_tokens> SSL Handshake Exception"
+//        state.exceptionCount = state.exceptionCount +1 
+//        return false
+//    } catch (java.util.concurrent.TimeoutException e) {
+//  		log.error "refresh_tokens> Timeout Exception - ecobee host busy/down?"
+//  		sendEvent name: "verboseTrace", value: "refresh_tokens> Execution timeout"
+//  		state.exceptionCount = state.exceptionCount +1 
+//  		return false
 	} catch (e) {
 		log.debug "refresh_tokens>exception $e at " + method.uri
 		sendEvent name: "verboseTrace", value:
 			"refresh_tokens>exception $e at " + method.uri
-		state.exceptionCount++                    
+		state.exceptionCount = state.exceptionCount +1                   
 		return false
 	}
 	// determine token's expire time
@@ -3382,7 +3385,7 @@ private def determine_ecobee_type_or_location(tstatType) {
 	} else if ((settings?.ecobeeType != null) && (settings?.ecobeeType != "")) {
 		ecobeeType = settings.ecobeeType.trim()
 		
-	} else if (modelNumber.contains("Ems")) {
+	} else if (modelNumber.toUpperCase().contains("EMS")) {
     
 		ecobeeType = 'managementSet'
 		settings.ecobeeType='managementSet'
