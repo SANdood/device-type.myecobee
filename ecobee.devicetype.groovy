@@ -1229,22 +1229,22 @@ private void doRequest(uri, args, type, success) {
 	} catch (java.net.UnknownHostException e) {
 		log.error "doRequest> Unknown host - check the URL " + params.uri
 		sendEvent name: "verboseTrace", value: "doRequest> Unknown host ${params.uri}"
-		state.exceptionCount = state.exceptiionCount +1
+		state.exceptionCount = state.exceptionCount +1
 		throw e
 	} catch (java.net.NoRouteToHostException e) {
 		log.error "doRequest> No route to host - check the URL " + params.uri
 		sendEvent name: "verboseTrace", value: "doRequest> No route to host ${params.uri}"
-		state.exceptionCount = state.exceptiionCount +1
+		state.exceptionCount = state.exceptionCount +1
 		throw e
 //  	} catch (javax.net.ssl.SSLHandshakeException e) {
 //    	log.error "doRequest> SSL Handshake Exception : " + params.uri
 //    	sendEvent name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
-//        state.exceptionCount = state.exceptiionCount +1
+//        state.exceptionCount = state.exceptionCount +1
 //		throw e
 //  	} catch (java.util.concurrent.TimeoutException e) {
 //  		log.error "doRequest> Timeout Exception - ecobee host busy/down?"
 //  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
-//  		state.exceptionCount = state.exceptiionCount +1
+//  		state.exceptionCount = state.exceptionCount +1
 //		throw e
 //	} catch (groovyx.net.http.HttpResponseException e) {
 //		log.error "doRequest> HTTPResponseException - ${e.getMessage()}"
@@ -1254,7 +1254,7 @@ private void doRequest(uri, args, type, success) {
 		log.debug "doRequest>exception $e for " + params.body
 		sendEvent name: "verboseTrace", value:
 			"doRequest>exception $e for " + params.body
-		state.exceptionCount = state.exceptiionCount +1
+		state.exceptionCount = state.exceptionCount +1
 		throw e    
 	}
 }
