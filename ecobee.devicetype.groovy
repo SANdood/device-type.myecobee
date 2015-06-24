@@ -445,7 +445,7 @@ metadata {
 //		}
 		standardTile("refresh", "device.thermostatMode", inactiveLabel: false,
 			decoration: "flat") {
-			state "default", action: "polling.poll", icon: "st.secondary.refresh"
+			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
 		}
 		main "temperature"
 		details(["name", /* "groups",*/ "operatingState", "mode", "temperature", "fanMode", "switchProgram",
@@ -754,9 +754,9 @@ def parse(String description) {
 }
 
 void poll() {
-//	if (settings.trace) {
+	if (settings.trace) {
 		log.trace 'poll> begin'
-//	}
+	}
 	
 	def tstatId,ecobeeType
 	def thermostatId= determine_tstat_id("")
@@ -769,7 +769,7 @@ void poll() {
 //		}
 		return
 	}
-
+	log.trace 'poll()'
 	// determine if there is an event running
     
 	Integer indiceEvent = 0
@@ -1115,6 +1115,7 @@ private def getClimateList(thermostatId) {
 
 void refresh() {
 	log.trace "refresh> poll()"
+//	state.exceptionCount = 5 // hack
 	poll()
 }
 
@@ -1149,7 +1150,12 @@ private void api(method, args, success = {}) {
 			/* Reset Exceptions counter as the refresh_tokens() call has been successful */    
 			state.exceptionCount=0
 		}            
+	} else {
+//		log.debug "state.exceptionCount: ${state.exceptionCount}"
+		state.exceptionCount = (state.exceptionCount > 1) ? state.exceptionCount -1 : 0 // hack to make sure we don't get stuck
+//		log.debug "state.exceptionCount: ${state.exceptionCount}"
 	}
+	
 	if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
 
 		log.error ("api>found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
