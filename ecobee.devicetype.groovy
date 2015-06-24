@@ -1252,10 +1252,10 @@ private void doRequest(uri, args, type, success) {
 //  		sendEvent name: "verboseTrace", value: "doRequest> Execution timeout"
 //  		state.exceptionCount = state.exceptionCount +1
 //		throw e
-//	} catch (groovyx.net.http.HttpResponseException e) {
-//		log.error "doRequest> HTTPResponseException - ${e.getMessage()}"
-//		state.exceptionCount = state.exceptionCount + 3  // let's try to fix in after 2 failures
-//		throw e
+	} catch (groovyx.net.http.HttpResponseException e) {
+		log.error "doRequest> HTTPResponseException (needs ChildAuth?)- $e"
+		state.exceptionCount = state.exceptionCount +1  // let's try to fix in after 2 failures
+		throw e
 	} catch (e) {
 		log.debug "doRequest>exception $e for " + params.body
 		sendEvent name: "verboseTrace", value:
@@ -3440,6 +3440,7 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 /*
 	settings.trace='true'
 */	
+//	settings.trace = null
 
 	if (settings.trace) {
 		log.debug "initialSetup>begin"
