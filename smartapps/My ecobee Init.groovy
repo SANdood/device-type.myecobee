@@ -384,8 +384,8 @@ def takeAction() {
 		d.poll()
 	}
 	
-    Integer pollTimer = 60
-    Integer longDelayTimer = pollTimer*2.25	
+    Integer pollTimer = 55
+    Integer longDelayTimer = pollTimer*2.5	
     
     runIn(pollTimer, takeAction, [overwrite: true])
 	runIn(longDelayTimer, longDelay, [overwrite: true])
@@ -398,7 +398,7 @@ def longDelay() {
 
     if (watchdogSwitch) {
     	if (watchdogSwitch.currentSwitch == 'off') {
-    		unsubscribe()
+    		unsubscribe( watchdogSwitch )
         	watchdogSwitch.on()							// let everyone know we missed one
     		subscribe( watchdogSwitch, "switch.on", watchdogHandler)
         }
