@@ -2891,10 +2891,10 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 	
 	getThermostatRevision("", thermostatId)
 
-	// Use all Revisions combined, sorted by frequency of updates to minimize CPU comparison time
-	// We only care about intervals in getReportData()
-	def newRevisions = device.currentValue('runtimeRevision') + /* device.currentValue('intervalRevision') + */
-		device.currentValue('alertsRevision') + device.currentValue('thermostatRevision') 
+	// We really only care about runtimeRevisions - changes to the others will be picked up when runtimeRevisions change
+	// The shorter string compare (and fewer currentValue() calls) will be more efficient
+	def newRevisions = device.currentValue('runtimeRevision') /* + device.currentValue('intervalRevision') + 
+		device.currentValue('alertsRevision') + device.currentValue('thermostatRevision') */
 		 
 	if (settings.trace) {
 		log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
