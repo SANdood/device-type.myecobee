@@ -764,9 +764,9 @@ void poll() {
 	def oldRevisions = state.lastRevisions
 	getThermostatInfo(thermostatId)
 	if (state.lastRevisions == oldRevisions) {
-//		if (settings.trace) {
+		if (settings.trace) {
 			log.trace 'poll> skipped - no revisions'
-//		}
+		}
 		return
 	}
 	log.trace 'poll()'
@@ -2041,6 +2041,7 @@ void setClimate(thermostatId, climateName, paramsMap=[]) {
 	def tstatParams
 
 	thermostatId = determine_tstat_id(thermostatId)
+
 	getThermostatInfo(thermostatId)
 	for (i in 0..data.thermostatList.size() - 1) {
 		def foundClimate = data.thermostatList[i].program.climates.find{ it.name.toUpperCase() == climateName.toUpperCase() }
@@ -2891,10 +2892,9 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 	
 	getThermostatRevision("", thermostatId)
 
-	// We really only care about runtimeRevisions - changes to the others will be picked up when runtimeRevisions change
-	// The shorter string compare (and fewer currentValue() calls) will be more efficient
+	// We really only care about runtimeRevisions - but some changes like Hold are only reflected in thermostatRevision
 	def newRevisions = device.currentValue('runtimeRevision') /* + device.currentValue('intervalRevision') + 
-		device.currentValue('alertsRevision') + device.currentValue('thermostatRevision') */
+		device.currentValue('alertsRevision') */ + device.currentValue('thermostatRevision')
 		 
 	if (settings.trace) {
 		log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
