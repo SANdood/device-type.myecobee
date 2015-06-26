@@ -40,7 +40,7 @@ metadata {
 		capability "Polling"
 		capability "Thermostat"
 		capability "Refresh"
-		capability "Presence Sensor"
+//		capability "Presence Sensor"
 		capability "Actuator"
 
 		attribute "thermostatName", "string"
@@ -676,14 +676,14 @@ void awake() {
 }
 void away() {
 	setThisTstatClimate("Away")
-	sendEvent(name: "presence", value: "not present")
+//	sendEvent(name: "presence", value: "not present")
 }
 void present() {
 	home()
 }
 void home() {
 	setThisTstatClimate("Home")
-	sendEvent(name: "presence", value: "present")
+//	sendEvent(name: "presence", value: "present")
 
 }
 void sleep() {
@@ -882,7 +882,7 @@ void poll() {
 		alerts: getAlerts(),
 		groups: (ecobeeType.toUpperCase() == 'REGISTERED')? getThermostatGroups(thermostatId) : 'No groups',
 		climateList: getClimateList(),
-		presence: (currentClimateTemplate.toUpperCase()!='AWAY')? "present":"not present",
+//		presence: (currentClimateTemplate.toUpperCase()!='AWAY')? "present":"not present",
 		heatStages:data.thermostatList[0].settings.heatStages.toString(),
 		coolStages:data.thermostatList[0].settings.coolStages.toString(),
 		climateName: currentClimate.name,
