@@ -41,7 +41,7 @@ preferences {
 			input "ecobee", "device.myEcobeeDevice", title: "Which ecobee thermostat?"
 
 		}
-		section("Polling ecobee3's remote3 sensor(s) at which interval in minutes (range=[5..59],default =30 min.)?") {
+		section("Polling ecobee3's remote3 sensor(s) at which interval in minutes (range=[1..59],default =30 min.)?") {
 			input "givenInterval", "number", title: "Interval", required: false
 		}
 
@@ -161,6 +161,7 @@ def installed() {
 def updated() {
 	log.debug "Updated with settings: ${settings}"
 	unsubscribe()
+    unschedule()
 	initialize()
 }
 
@@ -258,51 +259,72 @@ private def deleteSensors() {
 
 }
 
+def getSensors( evt ) {
+//	log.debug "getSensors>evt name=$evt.name, evt.value= $evt.value"
+	
+    runIn(5, takeAction, [overwrite: true])
+}
 
 def initialize() {
-	log.debug "initialize>begin"
+//	log.debug "{$location.name} initialize>begin"
 	state.msg=""
     
-	subscribe(ecobee, "remoteSensorOccData", updateMotionSensors)
-	subscribe(ecobee, "remoteSensorTmpData", updateTempSensors)
-	subscribe(ecobee, "remoteSensorHumData", updateHumiditySensors)
+	subscribe(ecobee, "remoteSensorOccData", updateMotionSensorsHandler)
+	subscribe(ecobee, "remoteSensorTmpData", updateTempSensorsHandler)
+	subscribe(ecobee, "remoteSensorHumData", updateHumiditySensorsHandler)
+
+	subscribe(ecobee, "runtimeRevision", getSensors)  // we ONLY run when the thermostats runtime data is updated
 
 	deleteSensors()
 	createMotionSensors()
 	createTempSensors()
 
 
-	takeAction()
+//	takeAction()
 
 
 	Integer delay = givenInterval ?: 30 // By default, do it every 30 min.
-	if ((delay < 5) || (delay > 59)) {
+	if ((delay < 1) || (delay > 59)) {
 		log.error "Scheduling delay not in range (${delay} min.), exiting"
 		runIn(30, "sendNotifDelayNotInRange")
 		return
 	}
-	log.trace("ecobeeRemoteSensorsInit>scheduling takeAction every ${delay} minutes")
+//	log.trace("ecobeeRemoteSensorsInit>scheduling takeAction every ${delay} minutes")
 
-	schedule("0 0/${delay} * * * ?", takeAction) 
+//	schedule("0 0/${delay} * * * ?", takeAction) 
+	takeAction()
 
-
-
-	log.debug "initialize>end"
+//	log.debug "initialize>end"
 }
 
 def takeAction() {
-	log.trace "takeAction>begin"
-	ecobee.poll()
-	log.trace "takeAction>about to call generateRemoteSensorEvents()"
+//	log.trace "takeAction>begin"
+//	ecobee.poll()
+//	log.trace "takeAction>about to call generateRemoteSensorEvents()"
 	ecobee.generateRemoteSensorEvents("", 'false')
 	updateMotionSensors()
-	updateTempSensors()    
-/*	
+	updateTempSensors()    	
 	updateHumiditySensors()
-*/
-	log.trace "takeAction>end"
+
+//	Integer delaySeconds =  ( givenInterval * 60 )  as Integer
+//    Integer longDelaySeconds = (delaySeconds * 3)
+    
+//    runIn( delaySeconds, takeAction, [overwrite: true] )
+//    runIn( longDelaySeconds, longDelay, [overwrite: true] )
+    
+//	log.trace "takeAction>end"
 }
 
+def longDelay() {
+
+	log.trace "********longDelay********"
+    
+    takeAction()
+        
+//    sendPush( "${location.name} ecobee3RemoteSensorsInit: ***longDelay***" )
+    
+
+}
 
 private def sendNotifDelayNotInRange() {
 
@@ -310,7 +332,7 @@ private def sendNotifDelayNotInRange() {
 
 }
 
-private updateMotionSensors(evt) {
+def updateMotionSensorsHandler(evt) {
 	log.debug "updateMotionSensors>evt name=$evt.name, evt.value= $evt.value"
 
 	updateMotionSensors()
@@ -319,7 +341,7 @@ private updateMotionSensors(evt) {
 private updateMotionSensors() {
 
 	def ecobeeSensors = ecobee.currentRemoteSensorOccData.toString().split(",,")
-	log.debug "updateTempSensors>ecobeeRemoteSensorOccData= $ecobeeSensors"
+	log.debug "updateMotionSensors>ecobeeRemoteSensorOccData= $ecobeeSensors"
 
 	if (ecobeeSensors.size() < 1) {
 
@@ -335,24 +357,23 @@ private updateMotionSensors() {
 
 		def dni = [app.id, ecobeeSensorName, getMotionSensorChildName(), ecobeeSensorId].join('.')
 
-		log.debug "updateMotionSensors>looking for $dni"
+//		log.debug "updateMotionSensors>looking for $dni"
 
 		def device = getChildDevice(dni)
 
 		if (device) {
-			log.debug "updateTempSensors>ecobeeSensorId=$ecobeeSensorId"
-			log.debug "updateTempSensors>ecobeeSensorName=$ecobeeSensorName"
-			log.debug "updateTempSensors>ecobeeSensorType=$ecobeeSensorType"
-			log.debug "updateTempSensors>ecobeeSensorValue=$ecobeeSensorValue"
+//			log.debug "updateMotionSensors>ecobeeSensorId=$ecobeeSensorId"
+//			log.debug "updateMotionSensors>ecobeeSensorName=$ecobeeSensorName"
+//			log.debug "updateMotionSensors>ecobeeSensorType=$ecobeeSensorType"
+//			log.debug "updateMotionSensors>ecobeeSensorValue=$ecobeeSensorValue"
 
 			String status = (ecobeeSensorValue.contains('false')) ? "inactive" : "active"
-			def isChange = device.isStateChange(device, "motion", status)
-			def isDisplayed = isChange
-			log.debug "device $device, found $dni,statusChanged=${isChange}, value= ${status}"
-
-			device.sendEvent(name: "motion", value: status, isStateChange: isChange, displayed: isDisplayed)
+            
+			if (device.isStateChange(device, "motion", status)) {
+				log.info "device $device, found $dni,statusChanged=true, Motion= ${status}"
+				device.sendEvent(name: "motion", value: status, isStateChange: true, displayed: true)
+            }            
 		} else {
-
 			log.debug "updateMotionSensors>couldn't find Motion Dectector device $ecobeeSensorName with dni $dni, probably not selected originally"
 		}
 
@@ -360,7 +381,7 @@ private updateMotionSensors() {
 
 }
 
-private updateTempSensors(evt) {	
+def updateTempSensorsHandler(evt) {	
 	log.debug "updateTempSensors>evt name=$evt.name, evt.value= $evt.value"
 	updateTempSensors()
 }
@@ -391,26 +412,25 @@ private updateTempSensors() {
 
 		def dni = [app.id, ecobeeSensorName, getTempSensorChildName(), ecobeeSensorId].join('.')
 
-		log.debug "updateTempSensors>looking for $dni"
+//		log.debug "updateTempSensors>looking for $dni"
 
 		def device = getChildDevice(dni)
 
 		if (device) {
 
-			log.debug "updateTempSensors>ecobeeSensorId= $ecobeeSensorId"
-			log.debug "updateTempSensors>ecobeeSensorName= $ecobeeSensorName"
-			log.debug "updateTempSensors>ecobeeSensorType= $ecobeeSensorType"
-			log.debug "updateTempSensors>ecobeeSensorValue= $ecobeeSensorValue"
+//			log.debug "updateTempSensors>ecobeeSensorId= $ecobeeSensorId"
+//			log.debug "updateTempSensors>ecobeeSensorName= $ecobeeSensorName"
+//			log.debug "updateTempSensors>ecobeeSensorType= $ecobeeSensorType"
+//			log.debug "updateTempSensors>ecobeeSensorValue= $ecobeeSensorValue"
             
             
 			Double tempValue = getTemperature(ecobeeSensorValue).toDouble().round(1)
 			String tempValueString = String.format('%2.1f', tempValue)
 
-			def isChange = device.isTemperatureStateChange(device, "temperature", tempValueString)
-			def isDisplayed = isChange
-			log.debug "device $device, found $dni,statusChanged=${isChange}, value= ${tempValueString}"
-
-			device.sendEvent(name: "temperature", value: tempValueString, unit: scale, isStateChange: isChange, displayed: isDisplayed)
+			if (device.isTemperatureStateChange(device, "temperature", tempValueString)) {
+				log.info "device $device, found $dni,statusChanged=true, Temp= ${tempValueString}"
+				device.sendEvent(name: "temperature", value: tempValueString, unit: scale, isStateChange: true, displayed: true)
+            }
 		} else {
 			log.debug "updateTempSensors>couldn't find Temperature Sensor device $ecobeeSensorName with dni $dni, probably not selected originally"
 		}
@@ -420,7 +440,7 @@ private updateTempSensors() {
 }
 
 
-private updateHumiditySensors(evt) {	
+def updateHumiditySensorsHandler(evt) {	
 	log.debug "updateHumiditySensors>evt name=$evt.name, evt.value= $evt.value"
 	updateHumiditySensors()
 }
@@ -449,26 +469,25 @@ private updateHumiditySensors() {
 
 		def dni = [app.id, ecobeeSensorName, getTempSensorChildName(), ecobeeSensorId].join('.')
 
-		log.debug "updateHumiditySensors>looking for $dni"
+//		log.debug "updateHumiditySensors>looking for $dni"
 
 		def device = getChildDevice(dni)
 
 		if (device) {
 
-			log.debug "updateHumiditySensors>ecobeeSensorId= $ecobeeSensorId"
-			log.debug "updateHumiditySensors>ecobeeSensorName= $ecobeeSensorName"
-			log.debug "updateHumiditySensors>ecobeeSensorType= $ecobeeSensorType"
-			log.debug "updateHumiditySensors>ecobeeSensorValue= $ecobeeSensorValue"
+//			log.debug "updateHumiditySensors>ecobeeSensorId= $ecobeeSensorId"
+//			log.debug "updateHumiditySensors>ecobeeSensorName= $ecobeeSensorName"
+//			log.debug "updateHumiditySensors>ecobeeSensorType= $ecobeeSensorType"
+//			log.debug "updateHumiditySensors>ecobeeSensorValue= $ecobeeSensorValue"
             
             
 			Double humValue = ecobeeSensorValue.toDouble().round()
 			String humValueString = String.format('%2d', humValue.intValue())
 
-			def isChange = device.isStateChange(device, "humidity", humValueString)
-			def isDisplayed = isChange
-			log.debug "device $device, found $dni,statusChanged=${isChange}, value= ${humValue}"
-
-			device.sendEvent(name: "humidity", value: humValueString, unit: '%', isStateChange: isChange, displayed: isDisplayed)
+			if (device.isStateChange(device, "humidity", humValueString)) {
+				log.info "device $device, found $dni,statusChanged=true, Humidity= ${humValue}"
+				device.sendEvent(name: "humidity", value: humValueString, unit: '%', isStateChange: true, displayed: true)
+            }
 		} else {
 			log.debug "updateHumiditySensors>couldn't find Humidity Sensor device $ecobeeSensorName with dni $dni, probably not selected originally"
 		}
@@ -505,7 +524,7 @@ private def getTemperature(value) {
 
 // catchall
 def event(evt) {
-	log.debug "value: $evt.value, event: $evt, settings: $settings, handlerName: ${evt.handlerName}"
+//	log.debug "value: $evt.value, event: $evt, settings: $settings, handlerName: ${evt.handlerName}"
 }
 
 def cToF(temp) {
