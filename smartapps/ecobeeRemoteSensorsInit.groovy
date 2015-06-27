@@ -262,7 +262,7 @@ private def deleteSensors() {
 def getSensors( evt ) {
 //	log.debug "getSensors>evt name=$evt.name, evt.value= $evt.value"
 	
-    runIn(5, takeAction, [overwrite: true])
+    runIn(2, takeAction, [overwrite: true])
 }
 
 def initialize() {
@@ -302,9 +302,9 @@ def takeAction() {
 //	ecobee.poll()
 //	log.trace "takeAction>about to call generateRemoteSensorEvents()"
 	ecobee.generateRemoteSensorEvents("", 'false')
-	updateMotionSensors()
-	updateTempSensors()    	
-	updateHumiditySensors()
+//	updateMotionSensors()
+//	updateTempSensors()    	
+//	updateHumiditySensors()
 
 //	Integer delaySeconds =  ( givenInterval * 60 )  as Integer
 //    Integer longDelaySeconds = (delaySeconds * 3)
@@ -333,7 +333,7 @@ private def sendNotifDelayNotInRange() {
 }
 
 def updateMotionSensorsHandler(evt) {
-	log.debug "updateMotionSensors>evt name=$evt.name, evt.value= $evt.value"
+//	log.debug "updateMotionSensors>evt name=$evt.name, evt.value= $evt.value"
 
 	updateMotionSensors()
 }
@@ -341,7 +341,7 @@ def updateMotionSensorsHandler(evt) {
 private updateMotionSensors() {
 
 	def ecobeeSensors = ecobee.currentRemoteSensorOccData.toString().split(",,")
-	log.debug "updateMotionSensors>ecobeeRemoteSensorOccData= $ecobeeSensors"
+//	log.debug "updateMotionSensors>ecobeeRemoteSensorOccData= $ecobeeSensors"
 
 	if (ecobeeSensors.size() < 1) {
 
@@ -382,7 +382,7 @@ private updateMotionSensors() {
 }
 
 def updateTempSensorsHandler(evt) {	
-	log.debug "updateTempSensors>evt name=$evt.name, evt.value= $evt.value"
+//	log.debug "updateTempSensors>evt name=$evt.name, evt.value= $evt.value"
 	updateTempSensors()
 }
 
@@ -393,7 +393,7 @@ private updateTempSensors() {
 
 	def ecobeeSensors = ecobee.currentRemoteSensorTmpData.toString().split(",,")
 
-	log.debug "updateTempSensors>ecobeeRemoteSensorTmpData= $ecobeeSensors"
+//	log.debug "updateTempSensors>ecobeeRemoteSensorTmpData= $ecobeeSensors"
 
 	if (ecobeeSensors.size() < 1) {
 
@@ -441,7 +441,7 @@ private updateTempSensors() {
 
 
 def updateHumiditySensorsHandler(evt) {	
-	log.debug "updateHumiditySensors>evt name=$evt.name, evt.value= $evt.value"
+//	log.debug "updateHumiditySensors>evt name=$evt.name, evt.value= $evt.value"
 	updateHumiditySensors()
 }
 
@@ -450,7 +450,7 @@ private updateHumiditySensors() {
 
 	def ecobeeSensors = ecobee.currentRemoteSensorHumData.toString().split(",,")
 
-	log.debug "updateHumiditySensors>ecobeeRemoteSensorHumData= $ecobeeSensors"
+//	log.debug "updateHumiditySensors>ecobeeRemoteSensorHumData= $ecobeeSensors"
 
 	if (ecobeeSensors.size() < 1) {
 
