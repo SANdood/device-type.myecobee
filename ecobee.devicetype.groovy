@@ -765,11 +765,11 @@ void poll() {
 	getThermostatInfo(thermostatId)
 	if (state.lastRevisions == oldRevisions) {
 		if (settings.trace) {
-			log.trace 'poll> skipped - no revisions'
+//			log.trace 'poll> skipped'
 		}
 		return
 	}
-	log.trace 'poll()'
+//	log.trace 'poll()'
 	// determine if there is an event running
     
 	Integer indiceEvent = 0
@@ -1154,6 +1154,20 @@ private void api(method, args, success = {}) {
 //		log.debug "state.exceptionCount: ${state.exceptionCount}"
 		state.exceptionCount = (state.exceptionCount > 1) ? state.exceptionCount -1 : 0 // hack to make sure we don't get stuck
 //		log.debug "state.exceptionCount: ${state.exceptionCount}"
+//		if (state.exceptionCount == MAX_EXCEPTION_COUNT) {
+//			if (!refresh_tokens()) {
+//				login()
+//					if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
+//					log.error ("api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
+//					sendEvent (name: "verboseTrace", 
+//						value: "api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
+//					return		
+//				}
+//			} else {
+//				/* Reset Exceptions counter as the refresh_tokens() call has been successful */    
+//				state.exceptionCount=0
+//			}
+//		}
 	}
 	
 	if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
