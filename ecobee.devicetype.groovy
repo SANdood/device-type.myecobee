@@ -448,10 +448,10 @@ metadata {
 			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
 		}
 		main "temperature"
-		details(["name", /* "groups",*/ "operatingState", "mode", "temperature", "fanMode", "switchProgram",
+		details([/* "name", */ /* "groups",*/ "humidity", "operatingState", "mode", "temperature", "fanMode", "switchProgram",
 			"heatLevelDown", "heatingSetpoint", "heatLevelUp", "coolLevelDown",
 			"coolingSetpoint", "coolLevelUp",
-			"equipStatus", "programEndTimeMsg", "humidity", "alerts",
+			"equipStatus", "programEndTimeMsg",  "alerts",
 			"fanMinOnTime", "programScheduleName", "programType", "programCoolTemp",
 			"programHeatTemp", "resProgram",
 /*			"weatherIcon", "weatherDateTime", "weatherConditions",
