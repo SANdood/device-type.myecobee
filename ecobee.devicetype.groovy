@@ -285,7 +285,7 @@ metadata {
 				icon: "st.Outdoor.outdoor20"
 			state "Away", label: '${name}', action: "quickSave", 
 				icon: "st.presence.car.car"
-			state "QuickSave", label: '${name}', action: "present", 
+			state "QuickSave", label: '${name}', action: "home", 
 				icon: "st.Home.home1"
 			state "Custom", label: 'Custom', action: "resumeThisTstat", 
 				icon: "st.Office.office6"
@@ -526,6 +526,7 @@ void setHeatingSetpoint(temp) {
 	setHold(thermostatId, device.currentValue("coolingSetpoint"), temp,
 		null, null)
 	sendEvent(name: 'heatingSetpoint', value: temp,unit: getTemperatureScale())
+	sendEvent(name: 'heatingSetpointDisplay', value: temp,unit: getTemperatureScale(), displayed: false)
 	def currentMode = device.currentValue("thermostatMode")
 	if ((currentMode=='heat') || (currentMode=='auto')) {
 		sendEvent(name: 'thermostatSetpoint', value: temp,unit: getTemperatureScale())     
@@ -539,7 +540,7 @@ void setCoolingSetpoint(temp) {
 
 	def currentMode = device.currentValue("thermostatMode")
 	sendEvent(name: 'coolingSetpoint', value: temp, unit: getTemperatureScale())
-	sendEvent(name: 'coolingSetpointDisplay', value: temp, unit: getTemperatureScale())
+	sendEvent(name: 'coolingSetpointDisplay', value: temp, unit: getTemperatureScale(), displayed: false)
 	if ((currentMode=='cool') || (currentMode=='auto')) {
 		sendEvent(name:'thermostatSetpoint', value: temp, unit: getTemperatureScale())     
 	}
@@ -566,8 +567,7 @@ void cool() {
 }
 void setThermostatMode(mode) {
 	mode = mode == 'emergency heat' ? 'heat' : mode
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['hvacMode': "${mode}"])
+	setThermostatSettings("", ['hvacMode': "${mode}"])
 	sendEvent(name: 'thermostatMode', value: mode)
 }
 void fanOn() {
@@ -584,16 +584,11 @@ def fanCirculate() {
 	setFanMinOnTime(15)	// Set a minimum of 15 minutes of fan per hour
 }
 void setThermostatFanMode(mode) {
-	def thermostatId= determine_tstat_id("") 
-	mode = (mode == 'off') ? 'auto' : mode
-	setHold(thermostatId, device.currentValue("coolingSetpoint"), device
-		.currentValue("heatingSetpoint"),
-		mode, null)
+	setThermostatSettings("", ['fanMinOnTime': "${minutes}"])
 	sendEvent(name: 'thermostatFanMode', value: mode)
 }
 void setFanMinOnTime(minutes) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['fanMinOnTime': "${minutes}"])
+	etThermostatSettings("", ['fanMinOnTime': "${minutes}"])
 	sendEvent(name: 'fanMinOnTime', value: minutes)
 }
 void ventilatorOn() {
@@ -606,15 +601,12 @@ void ventilatorAuto() {
 	setVentilatorMode('auto')
 }
 void setVentilatorMinOnTime(minutes) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['vent': "minontime",
-			'ventilatorMinOnTime': "${minutes}"])
+	setThermostatSettings("", ['vent': "minontime", 'ventilatorMinOnTime': "${minutes}"])
 	sendEvent(name: 'ventilatorMinOnTime', value: minutes)
 	sendEvent(name: 'ventilatorMode', value: "minontime")
 }
 void setVentilatorMode(mode) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['vent': "${mode}"])
+	setThermostatSettings("", ['vent': "${mode}"])
 	sendEvent(name: 'ventilatorMode', value: mode)
 }
 void setCondensationAvoid(flag) { // set the flag to true or false
@@ -630,13 +622,11 @@ void dehumidifierOff() {
 	setDehumidifierMode('off')
 }
 void setDehumidifierMode(mode) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['dehumidifierMode': "${mode}"])
+	setThermostatSettings("", ['dehumidifierMode': "${mode}"])
 	sendEvent(name: 'dehumidifierMode', value: mode)
 }
 void setDehumidifierLevel(level) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['dehumidifierLevel': "${level}"])
+	setThermostatSettings("", ['dehumidifierLevel': "${level}"])
 	sendEvent(name: 'dehumidifierLevel', value: level)
 }
 void humidifierAuto() {
@@ -649,25 +639,21 @@ void humidifierOff() {
 	setHumidifierMode('off')
 }
 void setHumidifierMode(mode) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['humidifierMode': "${mode}"])
+	setThermostatSettings("", ['humidifierMode': "${mode}"])
 	sendEvent(name: 'humidifierMode', value: mode)
 }
 void setHumidifierLevel(level) {
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['humidity': "${level}"])
+	setThermostatSettings("", ['humidity': "${level}"])
 	sendEvent(name: 'humidifierLevel', value: level)
 }
 void followMeComfort(flag) {
 	flag = flag == 'true' ? 'true' : 'false'
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['followMeComfort': "${flag}"])
+	setThermostatSettings("", ['followMeComfort': "${flag}"])
 	sendEvent(name: 'followMeComfort', value: flag)
 }
 void autoAway(flag) {
 	flag = flag == 'true' ? 'true' : 'false'
-	def thermostatId= determine_tstat_id("") 	    
-	setThermostatSettings(thermostatId, ['autoAway': "${flag}"])
+	setThermostatSettings("", ['autoAway': "${flag}"])
 	sendEvent(name: 'autoAway', value: flag)
 }
 
@@ -739,7 +725,7 @@ void setThisTstatClimate(climateName) {
 	// If climate is different from current one, then change it to the given climate
 	if (currentProgram.toUpperCase() != climateName.trim().toUpperCase()) {
     
-		resumeProgram(thermostatId)
+		resumeProgram("")
 		setClimate(thermostatId, climateName)
         
 		sendEvent(name: 'programScheduleName', value: climateName)
@@ -794,6 +780,18 @@ void poll() {
 	}
 
 	ecobeeType = determine_ecobee_type_or_location(ecobeeType)
+	
+	def programScheduleName= (foundEvent)? data.thermostatList[0].events[indiceEvent].name : currentClimate.name
+	def programType= (foundEvent)?data.thermostatList[0].events[indiceEvent].type : currentClimate.type
+    
+	// Generate the events for programScheduleName and programType as they are used by many attributes later
+    
+	def dataEvents = [
+		programScheduleName: (foundEvent)? data.thermostatList[0].events[indiceEvent].name : currentClimate.name,
+		programType: (foundEvent)?data.thermostatList[0].events[indiceEvent].type : currentClimate.type
+	]    
+	generateEvent(dataEvents)
+	
 	def progDisplayName = getCurrentProgName()
 	def currentClimateTemplate= (data.thermostatList[0].program.currentClimateRef)? currentClimate.name: progDisplayName  // if no program's climate set, then use current program
 	if (settings.trace) {
@@ -824,7 +822,7 @@ void poll() {
 		}
 	}
 
-	def dataEvents = [
+	dataEvents = [
  		thermostatName:data.thermostatList[0].name,
 		thermostatMode:data.thermostatList[0].settings.hvacMode,
 		temperature: data.thermostatList[0].runtime.actualTemperature,
@@ -889,7 +887,7 @@ void poll() {
 		setClimate: currentClimateTemplate
 	]
          
-	if (foundEvent && (data.thermostatList[0]?.events[indiceEvent]?.type == 'quickSave')) {
+	if (foundEvent && (data.thermostatList[0]?.events[indiceEvent]?.type.toUpperCase() == 'QUICKSAVE')) {
 		dataEvents.programEndTimeMsg ="Quicksave running"
 	}
 	generateEvent(dataEvents)
@@ -939,8 +937,8 @@ private void generateEvent(Map results) {
     
     def scale = getTemperatureScale()
     def changedCount = 0
-    
-	if(results) {
+
+	if (results) {
 		results.each { name, value ->
 			boolean isDisplayed = true
 			if (name.toUpperCase().contains("REMOTESENSOR")) {
@@ -950,6 +948,7 @@ private void generateEvent(Map results) {
 			if (name.toUpperCase().contains("DISPLAY")) {  
 				String tempValueString 
 				Double tempValue 
+				isDisplayed = false
 				if (scale == "F") {
 					tempValue = getTemperature(value).toDouble().round()
 					tempValueString = String.format('%2d', tempValue.intValue())            
@@ -1120,8 +1119,7 @@ void refresh() {
 }
 
 void resumeThisTstat() {
-	def thermostatId= determine_tstat_id("") 	    
-	resumeProgram(thermostatId) 
+	resumeProgram("") 
 	log.trace "resumeThisTstat> poll()"
 	poll()
 }
@@ -1143,7 +1141,7 @@ private void api(method, args, success = {}) {
 				log.error ("api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
 				sendEvent (name: "verboseTrace", 
 					value: "api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
-				return		
+				state.exceptionCount=0		
 			}
 		} else {
         
@@ -1763,8 +1761,8 @@ void iterateResumeProgram(tstatType) {
 //	if no thermostatId is provided, it is defaulted to the current thermostatId 
 void resumeProgram(thermostatId=settings.thermostatId) {  
 	thermostatId = determine_tstat_id(thermostatId)
-	def tstatSettings = [resumeAll: 'true']
-	def bodyReq = build_body_request('resumeProgram',null,thermostatId,tstatSettings)
+	def resumeParams = [resumeAll: 'true']
+	def bodyReq = build_body_request('resumeProgram',null,thermostatId,resumeParams)
 	if (settings.trace) {
 		log.debug "resumeProgram> about to call api with body = ${bodyReq} for ${thermostatId}"
 	}
@@ -1774,9 +1772,9 @@ void resumeProgram(thermostatId=settings.thermostatId) {
 		def message = resp.data.status.message
 		if (!statusCode) {
 			if (settings.trace) {
-				log.debug "resumeProgram> resumeAll done for ${thermostatId}"
+				log.debug "resumeProgram> resume done for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"resumeProgram> resumeAll done for ${thermostatId}"
+					"resumeProgram> resume done for ${thermostatId}"
 			}
 		} else {
 			log.error "resumeProgram>error=${statusCode.toString()}, message = ${message}"
@@ -2054,9 +2052,14 @@ void setClimate(thermostatId, climateName, paramsMap=[]) {
 	def climateRef = null
 	def tstatParams
 
+	if (thermostatId) {
+//		call getThermostatInfo if a value for thermostatId is provided to make sure to have the right thermostat information
+
+		getThermostatInfo(thermostatId) 
+	} 
 	thermostatId = determine_tstat_id(thermostatId)
 
-	getThermostatInfo(thermostatId)
+//	getThermostatInfo(thermostatId)
 	for (i in 0..data.thermostatList.size() - 1) {
 		def foundClimate = data.thermostatList[i].program.climates.find{ it.name.toUpperCase() == climateName.toUpperCase() }
 		if (foundClimate) {
@@ -2159,6 +2162,10 @@ void updateClimate(thermostatId, climateName, deleteClimateFlag,
 	def substituteClimateRef = null
 	def climateRefToBeReplaced = null
 
+	if (thermostatId) {
+//		call getThermostatInfo if a value for thermostatId is provided to make sure to have the right thermostat information
+		getThermostatInfo(thermostatId) 
+	} 
 	thermostatId = determine_tstat_id(thermostatId)
 	if ((coolTemp != null) && (heatTemp != null)) {
 		if (settings.trace) {
@@ -2323,15 +2330,8 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
 		',"functions":[{"type":"controlPlug","params":{"plugName":"' + plugName +
 		'","plugState":"' + plugState + '"'
 
-	// add the holdType (workaround till ecobee fixes the issue)
-    
-	if ((settings.holdType != null) && (settings.holdType.trim() != "")) {
-		bodyReq = bodyReq + '"holdType":"' + settings.holdType.trim() + '"'
-	} else {
-		bodyReq = bodyReq + '"holdType":"indefinite"'
-	}
 	// add the plugSettings if any
-	if ((plugSettings != null) && (plugSettings != [])) {
+	if (plugSettings) {
 		bodyReq = bodyReq + ',' + plugSet
 	}
 	bodyReq = bodyReq + '}}]}'
@@ -2353,7 +2353,7 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
  					plugState: plugState
  				]
                 
-				if ((plugSettings != null) && (plugSettings != '')) {
+				if (plugSettings) {
 					plugEvents = plugEvents + [plugSettings: plugSettings]
 				}
 				generateEvent(plugEvents)
@@ -2761,6 +2761,7 @@ private float calculate_report_stats(component, startInterval, endInterval, type
 
 void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def REMOTE_SENSOR_TYPE="ecobee3_remote_sensor"
+	def REMOTE_MONITOR_TYPE="monitor_sensor"
 	def REMOTE_THERMOSTAT_TYPE="thermostat"
 	def REMOTE_SENSOR_OCCUPANCY='occupancy'
 	def REMOTE_SENSOR_TEMPERATURE='temperature'
@@ -2777,7 +2778,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 		log.trace "generateRemoteSensorEvents> begin"
 	}
 
-	if ((thermostatId != null) && (thermostatId != "")) {
+	if (thermostatId) {
 		if (thermostatId.contains(",")) {
 			sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
 			log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
@@ -2792,13 +2793,14 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	def remoteTempData = ""
 	def remoteHumData = ""
 	def remoteOccData = ""
-	
+//	settings.trace = true
 	if (data.thermostatList[0].remoteSensors?.size() > 0) {
 		for (i in 0..data.thermostatList[0].remoteSensors.size() - 1) {
 			if (settings.trace) {
 				log.debug "generateRemoteSensorEvents>found sensor ${data.thermostatList[0].remoteSensors[i]} at (${i})"
 			}
 			if ((data.thermostatList[0].remoteSensors[i]?.type != REMOTE_SENSOR_TYPE) &&
+			 (data.thermostatList[0].remoteSensors[i]?.type != REMOTE_MONITOR_TYPE) &&
 			 (data.thermostatList[0].remoteSensors[i]?.type != REMOTE_THERMOSTAT_TYPE)) {
 				if (settings.trace) {
 					log.debug "generateRemoteSensorEvents>found sensor type ${data.thermostatList[0].remoteSensors[i].type} at (${i}, skipping it)"
@@ -2818,6 +2820,12 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 					log.debug "generateRemoteSensorEvents>adding ${data.thermostatList[0].remoteSensors[i]} to remoteData"
 				}
 				remoteData << data.thermostatList[0].remoteSensors[i]  // to be transformed into Json later
+			} 
+			if (!data.thermostatList[0].remoteSensors[i].capability) {
+				if (settings.trace) {
+					log.debug "generateRemoteSensorEvents>looping i=${i}, no capability values found..."
+				}
+				continue            
 			} 
 			for (j in 0..data.thermostatList[0].remoteSensors[i].capability.size()-1) {
 				if (settings.trace) {
@@ -2895,6 +2903,7 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 	if (settings.trace) {
 		log.trace "generateRemoteSensorEvents> done!"
 	}
+//	settings.trace = null
 }
     
 // thermostatId may be a list of serial# separated by ",", no spaces (ex. '123456789012,123456789013') 
