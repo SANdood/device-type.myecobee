@@ -942,7 +942,7 @@ private void generateEvent(Map results) {
 		results.each { name, value ->
 			boolean isDisplayed = true
 			if (name.toUpperCase().contains("REMOTESENSOR")) {
-				isDisplayed = false		// will get displayed by the devices themselves
+				isDisplayed = true		// will get displayed by the devices themselves
 			}
 // 			Temperature variable names for display contain 'display'            
 			if (name.toUpperCase().contains("DISPLAY")) {  
@@ -1115,6 +1115,9 @@ private def getClimateList(thermostatId) {
 void refresh() {
 	log.trace "refresh> poll()"
 //	state.exceptionCount = 5 // hack
+	state.lastPollTimestamp = null
+	state.lastRevisions = null
+	state.tstatRevisions = null
 	poll()
 }
 
@@ -1127,9 +1130,9 @@ void resumeThisTstat() {
 private void api(method, args, success = {}) {
 	def MAX_EXCEPTION_COUNT=5
 	String URI_ROOT = "${get_URI_ROOT()}/1"
+	
 	if (!isLoggedIn()) {
 		login()
-		
 	}    
 	if (isTokenExpired()) {
 		if (settings.trace) {
@@ -1141,7 +1144,8 @@ private void api(method, args, success = {}) {
 				log.error ("api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
 				sendEvent (name: "verboseTrace", 
 					value: "api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
-				state.exceptionCount=0		
+//				state.exceptionCount=0
+				return
 			}
 		} else {
         
@@ -2913,24 +2917,26 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 		log.trace 'getThermostatInfo> begin'
 	}
 	
-	getThermostatRevision("", thermostatId)
+	if (state?.lastPollTimestamp != null) { // gotta skip all this the first time throug
+	
+		getThermostatRevision("", thermostatId)
 
-	// We really only care about runtimeRevisions - but some changes like Hold are only reflected in thermostatRevision
-	def newRevisions = device.currentValue('runtimeRevision') /* + device.currentValue('intervalRevision') + 
-		device.currentValue('alertsRevision') */ + device.currentValue('thermostatRevision')
+		// We really only care about runtimeRevisions - but some changes like Hold are only reflected in thermostatRevision
+		def newRevisions = device.currentValue('runtimeRevision') /* + device.currentValue('intervalRevision') + 
+			device.currentValue('alertsRevision') */ + device.currentValue('thermostatRevision')
 		 
-	if (settings.trace) {
-		log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
-	}
-	if ((state?.lastRevisions != null) && (state?.lastRevisions == newRevisions)) {
 		if (settings.trace) {
-			log.trace 'getThermostatInfo> skipped - no revisions'
+			log.debug ("getThermostatInfo>lastRevisions=${state?.lastRevisions}, newRevisions=${newRevisions}...")
 		}
-		return
-//		log.trace 'getThermostatInfo> Would Skip!'
+		if ((state?.lastRevisions != null) && (state?.lastRevisions == newRevisions)) {
+			if (settings.trace) {
+				log.trace 'getThermostatInfo> skipped - no revisions'
+			}
+			return
+	//		log.trace 'getThermostatInfo> Would Skip!'
+		}
+		state?.lastRevisions = newRevisions
 	}
-	state?.lastRevisions = newRevisions
-
 // OK, something has changed since our last check on thermostatRevision, let's DO THIS!
 
 	if (settings.trace) {
@@ -3000,6 +3006,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 	if (settings.trace) {
 		log.trace "getThermostatInfo> done!"
 	}
+	if (state?.lastPollTimestamp == null) { getThermostatRevision("", thermostatId) }
 }
 
 // tstatType =managementSet or registered (no spaces). 
@@ -3007,8 +3014,11 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 // thermostatId may be a single thermostat only
 
 def getThermostatRevision(tstatType, thermostatId) {
+//	log.debug "getThermostatRevision> type: ${tstatType} ID: ${thermostatId}"
 	thermostatId = determine_tstat_id(thermostatId)
+//	log.debug "ID: ${thermostatId}"
 	def ecobeeType = determine_ecobee_type_or_location(tstatType)
+//	log.debug "ecobeeType = ${ecobeeType}"
 	getThermostatSummary(ecobeeType)
 	
 	for (i in 0..data.thermostatCount - 1) {
