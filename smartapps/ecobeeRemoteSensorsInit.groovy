@@ -8,7 +8,7 @@
  *  in compliance with the License. You may obtain a copy of the License at:
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ *sub
  *  Unless required by applicable lax or agreed to in writing, software distributed under the License is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
@@ -78,7 +78,7 @@ def selectMotionSensors() {
 
 	log.debug "selectMotionSensors>ecobeeSensors= $ecobeeSensors"
 
-	if (ecobeeSensors.size() < 1) {
+	if ((!ecobeeSensors)  || (ecobeeSensors.size() < 1)) {
 
 		log.debug "selectMotionSensors>no values found"
 		return sensors
@@ -120,7 +120,7 @@ def selectTempSensors() {
 
 	log.debug "selectTempSensors>ecobeeSensors= $ecobeeSensors"
 
-	if (ecobeeSensors.size() < 1) {
+	if ((!ecobeeSensors)  || (ecobeeSensors.size() < 1)) {
 
 		log.debug "selectTempSensors>no values found"
 		return sensors
@@ -266,9 +266,11 @@ def getSensors( evt ) {
 }
 
 def initialize() {
-//	log.debug "{$location.name} initialize>begin"
+	log.debug "{$location.name} initialize>begin"
 	state.msg=""
-    
+    state?.exceptionCount=0       
+	state?.runtimeRevision=null
+
 	subscribe(ecobee, "remoteSensorOccData", updateMotionSensorsHandler)
 	subscribe(ecobee, "remoteSensorTmpData", updateTempSensorsHandler)
 	subscribe(ecobee, "remoteSensorHumData", updateHumiditySensorsHandler)
@@ -293,7 +295,10 @@ def initialize() {
 
 //	schedule("0 0/${delay} * * * ?", takeAction) 
 	takeAction()
-
+	updateMotionSensors()
+	updateTempSensors()    	
+	updateHumiditySensors()
+	
 //	log.debug "initialize>end"
 }
 
@@ -302,9 +307,6 @@ def takeAction() {
 //	ecobee.poll()
 //	log.trace "takeAction>about to call generateRemoteSensorEvents()"
 	ecobee.generateRemoteSensorEvents("", 'false')
-//	updateMotionSensors()
-//	updateTempSensors()    	
-//	updateHumiditySensors()
 
 //	Integer delaySeconds =  ( givenInterval * 60 )  as Integer
 //    Integer longDelaySeconds = (delaySeconds * 3)
