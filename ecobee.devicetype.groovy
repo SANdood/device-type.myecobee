@@ -965,7 +965,7 @@ private void generateEvent(Map results) {
 			} else if ((name.toUpperCase().contains("TEMP"))|| (name.toUpperCase().contains("SETPOINT"))) {  
 				Double tempValue = getTemperature(value).toDouble().round(1)
 				String tempValueString = String.format('%2.1f', tempValue)
-			if (isTemperatureStateChange(device, name, tempValueString)) {
+				if (isTemperatureStateChange(device, name, tempValueString)) {
                 	changedCount++
 					sendEvent(name: name, value: tempValueString, unit: scale, isStateChange: true, displayed: isDisplayed)
                 }
