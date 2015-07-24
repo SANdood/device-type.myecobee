@@ -2115,11 +2115,9 @@ void setClimate(thermostatId, climateName, paramsMap=[]) {
 						sendEvent(name: 'setClimate', value: climateName)
 						sendEvent name: "verboseTrace", value:
 							"setClimate>done for thermostatId =${data.thermostatList[i].identifier},climateName =${climateName}"
-
-
-					}
+//					}
 				} else {
-					log.error "setClimate>error=${statusCode.toString() while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
+					log.error "setClimate>error=${statusCode.toString()} while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
 					sendEvent name: "verboseTrace", value:
 						"setClimate>error ${statusCode.toString()} while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
 				} /* end if statusCode */
