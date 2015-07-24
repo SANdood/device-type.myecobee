@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.1.5
+ *  Version 2.1.7
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -707,14 +707,14 @@ void quickSave() {
 	def quickSaveMap = ['coolingSetpoint': quickSaveCooling,		
 		'heatingSetpoint': quickSaveHeating,
 		'programScheduleName': "QuickSave",
-		'programDisplayName': "QuickSave"
+		'programNameForUI': "QuickSave"
 	]        
 	generateEvent(quickSaveMap)    
 }
   
 void setThisTstatClimate(climateName) {
 	def thermostatId= determine_tstat_id("") 	    
-	def currentProgram = device.currentValue("programScheduleName")
+	def currentProgram = device.currentValue("climateName")
 	def currentProgramType = device.currentValue("programType").trim().toUpperCase()
 	if (currentProgramType == 'VACATION') {
 		if (settings.trace) {
@@ -729,10 +729,20 @@ void setThisTstatClimate(climateName) {
     
 		resumeProgram("")
 		setClimate(thermostatId, climateName)
+		def exceptionCheck=device.currentValue("verboseTrace")
+		if (exceptionCheck.contains("done")) {
         
-		sendEvent(name: 'programScheduleName', value: climateName)
+			sendEvent(name: 'programScheduleName', value: climateName)
+			sendEvent(name: 'programNameForUI', value: climateName)
+// No presence in my version (BAB)
+//			if (climateName.toUpperCase().contains('AWAY')) { 
+//				sendEvent(name: "presence", value: "non present")
+//			} else {        
+//				sendEvent(name: "presence", value: "present")
+//			}
+		}            
 
-		log.trace "setThisTstatClimate> poll()"
+//		log.trace "setThisTstatClimate> poll()"
 		poll() // to refresh the values in the UI
 	}
 }
@@ -893,8 +903,7 @@ void poll() {
 //		presence: (currentClimateTemplate.toUpperCase()!='AWAY')? "present":"not present",
 		heatStages:data.thermostatList[0].settings.heatStages.toString(),
 		coolStages:data.thermostatList[0].settings.coolStages.toString(),
-		climateName: currentClimate.name,
-		setClimate: currentClimateTemplate
+		climateName: currentClimate.name
 	]
          
 	if (foundEvent && (data.thermostatList[0]?.events[indiceEvent]?.type.toUpperCase() == 'QUICKSAVE')) {
@@ -1152,9 +1161,9 @@ private void api(method, args, success = {}) {
 		if (!refresh_tokens()) {
 			login()
 			if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
-				log.error ("api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
+				log.error ("api>error: Unauthorized exception, not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
 				sendEvent (name: "verboseTrace", 
-					value: "api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
+					value: "api>error: Unauthorized exception, not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
 //				state.exceptionCount=0
 				return
 			}
@@ -1184,11 +1193,10 @@ private void api(method, args, success = {}) {
 	}
 	
 	if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
-
-		log.error ("api>found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
+		log.error ("api>error: found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
 		sendEvent (name: "verboseTrace", 
-			value: "api>found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
-		return		
+			value: "api>error: found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
+		state.exceptionCount = 0 // reset?		
 	}    
 	def args_encoded = java.net.URLEncoder.encode(args.toString(), "UTF-8")
 	def methods = [
