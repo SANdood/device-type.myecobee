@@ -23,9 +23,10 @@ definition(
 preferences {
 	page(name: "about", title: "About", nextPage: "auth")
 	page(name: "auth", title: "ecobee", content:"authPage", nextPage:"deviceList")
-	page(name: "deviceList", title: "ecobee", content:"ecobeeDeviceList", install:true)
+	page(name: "deviceList", title: "ecobee", content:"ecobeeDeviceList",nextPage: "otherSettings")
+	page(name: "otherSettings", title: "Other Settings", content:"otherSettings", install:true)
 /*
-	Remove the 2nd page as this is not efficient workaround for the ST max execution time constraint
+	Removed the 2nd page as this is not efficient workaround for the ST max execution time constraint
 	page(name: "deviceList2", title: "ecobee", content:"ecobeeDeviceList2", install:true)
 */
 }
@@ -42,7 +43,7 @@ def about() {
  	dynamicPage(name: "about", install: false, uninstall: true) {
  		section("About") {	
 			paragraph "My Ecobee Init, the smartapp that connects your Ecobee thermostat to SmartThings via cloud-to-cloud integration"
-			paragraph "Version 1.9.2\n\n" +
+			paragraph "Version 2.0\n\n" +
 			"If you like this app, please support the developer via PayPal:\n\nyracine@yahoo.com\n\n" +
 			"Copyright©2014 Yves Racine"
 			href url:"http://github.com/yracine/device-type.myecobee", style:"embedded", required:false, title:"More information...", 
@@ -51,8 +52,24 @@ def about() {
 	}        
 }
 
+def otherSettings() {
+	dynamicPage(name: "otherSettings", title: "Other Settings", install: true, uninstall: false) {
+		section("Polling at which interval in minutes (range=[5..59],default=10 min.)?") {
+			input "givenInterval", "number", title:"Interval", required: false
+		}
+		section("Notifications") {
+			input "sendPushMessage", "enum", title: "Send a push notification?", metadata: [values: ["Yes", "No"]], required:
+				false
+			input "phoneNumber", "phone", title: "Send a text message?", required: false
+		}
+		section([mobileOnly:true]) {
+			label title: "Assign a name for this SmartApp", required: false
+		}
+	}
+}
+
 def authPage() {
-	log.debug "authPage()"
+	log.debug "authPage(),state.oauthTokenProvided=${state?.oauthTokenProvided}"
 
 	if (!atomicState.accessToken) {
 		log.debug "about to create access token"
@@ -60,30 +77,28 @@ def authPage() {
 		atomicState.accessToken = state.accessToken
 	}
 
-
 	def description = "Required"
 	def uninstallAllowed = false
-	def oauthTokenProvided = false
 
 	if (atomicState.authToken) {
+
 		// TODO: Check if it's valid
-		if(true) {
+		if (true) {
 			description = "You are connected."
 			uninstallAllowed = true
-			oauthTokenProvided = true
+			state?.oauthTokenProvided=true            
 		} else {
 			description = "Required" // Worth differentiating here vs. not having atomicState.authToken? 
-			oauthTokenProvided = false
 		}
 	}
 
 	def redirectUrl = oauthInitUrl()
+	log.debug "authPage>atomicState.authToken=${atomicState.authToken},state.oauthTokenProvided=${state?.oauthTokenProvided}, RedirectUrl = ${redirectUrl}"
 
-	log.debug "RedirectUrl = ${redirectUrl}"
 
 	// get rid of next button until the user is actually auth'd
 
-	if (!oauthTokenProvided) {
+	if (!state?.oauthTokenProvided) {
 
 		return dynamicPage(name: "auth", title: "Login", nextPage:null, uninstall:uninstallAllowed) {
 			section(){
@@ -230,7 +245,7 @@ def getEcobeeThermostats(String type="") {
 def setParentAuthTokens(auth_data) {
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-	sendPush("setParentAuthTokens>begin auth_data: $auth_data")
+	send("setParentAuthTokens>begin auth_data: $auth_data")
 */
 
 	atomicState.refreshToken = auth_data?.refresh_token
@@ -241,26 +256,26 @@ def setParentAuthTokens(auth_data) {
 	refreshAllChildAuthTokens()
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-	sendPush("setParentAuthTokens>New atomicState: $atomicState")
+	send("setParentAuthTokens>New atomicState: $atomicState")
 */
 }
 
 def refreshAllChildAuthTokens() {
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-	sendPush("refreshAllChildAuthTokens>begin updating children with $atomicState")
+	send("refreshAllChildAuthTokens>begin updating children with $atomicState")
 */
 
 	def children= getChildDevices()
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-	sendPush("refreshAllChildAuthtokens> refreshing ${children.size()} thermostats")
+	send("refreshAllChildAuthtokens> refreshing ${children.size()} thermostats")
 */
 
 	children.each { 
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-		sendPush("refreshAllChildAuthTokens>begin updating $it.deviceNetworkId with $atomicState")
+		send("refreshAllChildAuthTokens>begin updating $it.deviceNetworkId with $atomicState")
 */
     	it.refreshChildTokens(atomicState) 
 	}
@@ -269,13 +284,13 @@ def refreshAllChildAuthTokens() {
 def refreshThisChildAuthTokens(child) {
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-	sendPush("refreshThisChildAuthTokens>begin child id: ${child.device.deviceNetworkId}, updating it with ${atomicState}")
+	send("refreshThisChildAuthTokens>begin child id: ${child.device.deviceNetworkId}, updating it with ${atomicState}")
 */
 	child.refreshChildTokens(atomicState)
 
 /*
 	For Debugging purposes, due to the fact that logging is not working when called (separate thread)
-	sendPush("refreshThisChildAuthTokens>end")
+	send("refreshThisChildAuthTokens>end")
 */
 }
 
@@ -320,8 +335,7 @@ private def delete_child_devices() {
 	if(!thermostats) {
 		log.debug "delete_child_devices>delete all ecobee thermostats"
 		delete = getAllChildDevices()
-	}
-	else {
+	} else {
 		delete = getChildDevices().findAll { !thermostats.contains(it.deviceNetworkId) }
 	}
 
@@ -378,11 +392,37 @@ def initialize() {
 
 def takeAction() {
 	log.trace "takeAction>begin"
+	def msg, exceptionCheck    
+	def MAX_EXCEPTION_COUNT=5
+
 	def devices = thermostats.collect { dni ->
 		def d = getChildDevice(dni)
 		log.debug "takeAction>Looping thru thermostats, found id $dni, about to poll"
-		d.poll()
+		try {        
+			d.poll()
+			exceptionCheck = d.currentVerboseTrace.toString()
+			if ((exceptionCheck.contains("exception") || (exceptionCheck.contains("error")) && 
+				(!exceptionCheck.contains("Java.util.concurrent.TimeoutException")))) {  
+			// check if there is any exception or an error reported in the verboseTrace associated to the device (except the ones linked to rate limiting).
+				state.exceptionCount=state.exceptionCount+1    
+				log.error "found exception/error after polling, exceptionCount= ${state?.exceptionCount}: $exceptionCheck" 
+			} else {             
+				// reset exception counter            
+				state?.exceptionCount=0       
+			}                
+		} catch (e) {
+			state.exceptionCount=state.exceptionCount+1    
+			log.error "MyEcobeeInit>exception $e while trying to poll the device $d, exceptionCount= ${state?.exceptionCount}" 
+		}
 	}
+	if ((state?.exceptionCount>=MAX_EXCEPTION_COUNT) || (exceptionCheck.contains("Unauthorized"))) {
+		// need to authenticate again    
+		atomicState.authToken=null                    
+		state?.oauthTokenProvided=false
+		msg="too many exceptions/errors or unauthorized exception, $exceptionCheck (${state?.exceptionCount} errors), press on 'ecobee' and re-login..." 
+		send "MyEcobeeInit> ${msg}"
+		log.error msg
+	}    
 	
     Integer pollTimer = 55
     Integer longDelayTimer = pollTimer*2.5	
@@ -413,6 +453,28 @@ def watchdogHandler( evt ) {
     
     unschedule()
     takeAction()
+}
+
+private void sendMsgWithDelay() {
+
+	if (state?.msg) {
+		send "MyEcobeeInit> ${state.msg}"
+	}
+}
+
+private send(msg) {
+	if (sendPushMessage != "No") {
+		log.debug("sending push message")
+		sendPush(msg)
+
+	}
+
+	if (phoneNumber) {
+		log.debug("sending text message")
+		sendSms(phoneNumber, msg)
+	}
+
+	log.debug msg
 }
 
 def oauthInitUrl() {
