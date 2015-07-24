@@ -947,7 +947,7 @@ void poll() {
 	if (settings.trace) {
 	    log.trace 'poll> done!'
 	}
-	sendEvent name: "verboseTrace", value: "poll>done for thermostatId =${thermostatId}", displayed: false
+	sendEvent name: "verboseTrace", value: "poll>done for thermostatId =${thermostatId}", displayed: (settings.trace? true : false)
 }
 
 private void generateEvent(Map results) {
@@ -1441,7 +1441,7 @@ void setThermostatSettings(thermostatId,tstatSettings = []) {
 			if (!statusCode) {
 //				if (settings.trace) {
 					sendEvent name: "verboseTrace", value:
-						"setThermostatSettings>done for ${thermostatId}"
+						"setThermostatSettings>done for ${thermostatId}", displayed: (settings.trace? true : false)
 //				}
 			} else {
 				log.error "setThermostatSettings> error=${statusCode.toString()}, message = ${message}"
@@ -1567,7 +1567,7 @@ void setHoldExtraParams(thermostatId, coolingSetPoint, heatingSetPoint, fanMode,
 			if (!statusCode) {
 //				if (settings.trace) {
 					sendEvent name: "verboseTrace", value:
-						"setHold>done for ${thermostatId}"
+						"setHold>done for ${thermostatId}", displayed: (settings.trace? true : false)
 //				}
 			} else {
 				log.error "setHold> error=${statusCode.toString()}, message = ${message}"
@@ -1662,7 +1662,7 @@ void createVacation(thermostatId, vacationName, targetCoolTemp, targetHeatTemp,
 			log.debug "${vacationName} created for ${thermostatId}"
 //			if (settings.trace) {
 				sendEvent name: "verboseTrace", value:
-					"createVacation>done for ${thermostatId}"
+					"createVacation>done for ${thermostatId}", displayed: (settings.trace? true : false)
 //			}
 		} else {
 			log.error "createVacation>error=${statusCode.toString()}, message = ${message}"
@@ -1730,7 +1730,7 @@ void deleteVacation(thermostatId, vacationName) {
 //			if (settings.trace) {
 //				log.debug "deleteVacation>${vacationName} deleted done for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"deleteVacation>done for ${thermostatId}"
+					"deleteVacation>done for ${thermostatId}", displayed: (settings.trace? true : false)
 //			}
 		} else {
 			log.error "deleteVacation> error= ${statusCode.toString()}, message = ${message}"
@@ -1797,7 +1797,7 @@ void resumeProgram(thermostatId=settings.thermostatId) {
 //			if (settings.trace) {
 //				log.debug "resumeProgram> resume done for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"resumeProgram> resume done for ${thermostatId}"
+					"resumeProgram> resume done for ${thermostatId}", displayed: (settings.trace? true : false)
 //			}
 		} else {
 			log.error "resumeProgram>error=${statusCode.toString()}, message = ${message}"
@@ -1950,7 +1950,7 @@ void updateGroup(groupRef, groupName, thermostatId, groupSettings = []) {
 //				if (settings.trace) {
 //					log.debug "updateGroup>done for groupName =${groupName}, ${thermostatId}"
 					sendEvent name: "verboseTrace", value:
-						"updateGroup>done for groupName =${groupName}, ${thermostatId}"
+						"updateGroup>done for groupName =${groupName}, ${thermostatId}", displayed: (settings.trace? true : false)
 //				}
 			} else {
 				log.error "updateGroup> error=${statusCode.toString()}, message = ${message}"
@@ -1990,7 +1990,7 @@ void deleteGroup(groupRef, groupName) {
 //			if (settings.trace) {
 //				log.debug "deleteGroup>done for groupName =${groupName}, groupRef = ${groupRef}"
 				sendEvent name: "verboseTrace", value:
-					"deleteGroup>done for groupName =${groupName},groupRef = ${groupRef}"
+					"deleteGroup>done for groupName =${groupName},groupRef = ${groupRef}", displayed: (settings.trace? true : false)
 //			}
 		} else {
 			log.error "deleteGroup> error=  ${statusCode.toString()}, message = ${message}"
@@ -2121,7 +2121,7 @@ void setClimate(thermostatId, climateName, paramsMap=[]) {
 //						log.debug "setClimate>done for thermostatId =${thermostatId}, climateName =${climateName}"
 						/* Post the setClimate value */    
 						sendEvent(name: 'setClimate', value: climateName)
-						sendEvent name: "verboseTrace", value:
+						sendEvent name: "verboseTrace", displayed: (settings.trace? true : false), value:
 							"setClimate>done for thermostatId =${data.thermostatList[i].identifier},climateName =${climateName}"
 //					}
 				} else {
@@ -2319,7 +2319,7 @@ void updateClimate(thermostatId, climateName, deleteClimateFlag,
 //				if (settings.trace) {
 //					log.debug "updateClimate>done for thermostatId =${thermostatId}, climateName =${climateName}"
 					sendEvent name: "verboseTrace", value:
-						"updateClimate>done for thermostatId =${thermostatId},climateName =${climateName}"
+						"updateClimate>done for thermostatId =${thermostatId},climateName =${climateName}", displayed: (settings.trace? true : false)
 //				}
 			} else {
 				log.error "updateClimate>error=${statusCode.toString()}, message = ${message}"
@@ -2366,7 +2366,7 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
 //				if (settings.trace) {
 //					log.debug "controlPlug>done for thermostatId =${thermostatId}, plugName =${plugName}"
 					sendEvent name: "verboseTrace", value:
-						"controlPlug>done for thermostatId =${thermostatId},plugName =${plugName}"
+						"controlPlug>done for thermostatId =${thermostatId},plugName =${plugName}", displayed: (settings.trace? true : false)
 //				}
 				// post plug values 
  				def plugEvents = [
@@ -2527,7 +2527,7 @@ void getReportData(thermostatId, startDateTime, endDateTime, startInterval, endI
 					log.debug "getReportData> sensorList= ${data.sensorList}"
 					log.debug "getReportData> postData= ${postData}"
 				}
-        	    sendEvent name: "verboseTrace", value:"getReportData> done for thermostatId ${thermostatId}"
+        	    sendEvent name: "verboseTrace", value:"getReportData> done for thermostatId ${thermostatId}", displayed: (settings.trace? true : false)
         	    
 			} else {
 				log.error "getReportData> error=${statusCode.toString()}, message = ${message}"
@@ -3004,7 +3004,7 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 						"desiredDehumidity=${runtimeSettings.desiredDehumidity},dehumidifierMode=${thermostatSettings.dehumidifierMode}"
 				}
 				sendEvent name: "verboseTrace", value:
-					"getTstatInfo>done for ${thermostatId}"
+					"getTstatInfo>done for ${thermostatId}", displayed: (settings.trace? true : false)
 			} else {
 				log.error "getThermostatInfo> error=${statusCode.toString()} - ${statusCode}, message = ${message}"
 				sendEvent name: "verboseTrace", value:
@@ -3057,7 +3057,7 @@ def getThermostatRevision(tstatType, thermostatId) {
 				log.debug "getThermostatRevision> done for ${thermostatName}, Revisions: thermostat: ${thermostatRevision}, alerts: ${alertsRevision}, runtime: ${runtimeRevision}, interval: ${intervalRevision}"
 			}
 			sendEvent name: "verboseTrace", value:
-					"getTstatRevision>done for ${thermostatId}"
+					"getTstatRevision>done for ${thermostatId}", displayed: (settings.trace? true : false)
 			return
 		}
 	}
@@ -3119,7 +3119,7 @@ void getThermostatSummary(tstatType) {
 					}
 				} /* end for */    
 				sendEvent name: "verboseTrace", value:
-					"getTstatSummary>done"
+					"getTstatSummary>done", displayed: (settings.trace? true : false)
 			} else {
 				log.error "getThermostatSummary> error=${statusCode.toString()}, message = ${message}"
 				sendEvent name: "verboseTrace", value:
