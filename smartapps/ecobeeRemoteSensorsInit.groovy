@@ -31,7 +31,7 @@ preferences {
 	page(name: "selectThermostat", title: "Ecobee Thermostat", install: false, uninstall: true, nextPage: "selectMotionSensors") {
 		section("About") {
 			paragraph "ecobeeRemoteSensorsInit, the smartapp that creates individual ST sensors for your ecobee3's remote Sensors and polls them on a regular basis"
-			paragraph "Version 1.1\n\n" +
+			paragraph "Version 1.1.8\n\n" +
 				"If you like this app, please support the developer via PayPal:\n\nyracine@yahoo.com\n\n" +
 				"Copyright©2015 Yves Racine"
 			href url: "http://github.com/yracine", style: "embedded", required: false, title: "More information...",
@@ -64,25 +64,26 @@ preferences {
 
 
 def selectMotionSensors() {
-
+	
+	def sensors = [: ]
 	/* Generate the list of all remote sensors available 
 	 */
-	ecobee.generateRemoteSensorEvents("", 'false')
-    
-	def sensors = [: ]
-
+	try {
+		ecobee.generateRemoteSensorEvents("", 'false')
+	} catch (e) {
+		log.debug "selectMotionSensors>exception $e when getting list of motion Sensors, exiting..."
+		return sensors
+	} 
 	/* Get only the list of all occupancy remote sensors available 
 	 */
-
-	def ecobeeSensors = ecobee.currentRemoteSensorOccData.toString().split(",,")
+	def ecobeeSensors = ecobee.currentRemoteSensorOccData.toString().minus('[').minus(']').split(",,")
 
 	log.debug "selectMotionSensors>ecobeeSensors= $ecobeeSensors"
 
-	if ((!ecobeeSensors)  || (ecobeeSensors.size() < 1)) {
+	if (!ecobeeSensors) {
 
 		log.debug "selectMotionSensors>no values found"
 		return sensors
-
 	}
 
 	for (i in 0..ecobeeSensors.size() - 1) {
@@ -98,9 +99,7 @@ def selectMotionSensors() {
 
 	}
 
-
 	log.debug "selectMotionSensors> sensors= $sensors"
-
 
 	def chosenSensors = dynamicPage(name: "selectMotionSensors", title: "Select Motion Sensors", install: false, uninstall: true) {
 		section("Select Motion Sensors") {
@@ -110,17 +109,16 @@ def selectMotionSensors() {
 	return chosenSensors
 }
 
-
 def selectTempSensors() {
     
 	def sensors = [: ]
 	/* Get only the list of all temperature remote sensors available 
 	 */
-	def ecobeeSensors = ecobee.currentRemoteSensorTmpData.toString().split(",,")
+	def ecobeeSensors = ecobee.currentRemoteSensorTmpData.toString().minus('[').minus(']').split(",,")
 
 	log.debug "selectTempSensors>ecobeeSensors= $ecobeeSensors"
 
-	if ((!ecobeeSensors)  || (ecobeeSensors.size() < 1)) {
+	if (!ecobeeSensors) {
 
 		log.debug "selectTempSensors>no values found"
 		return sensors
@@ -342,10 +340,10 @@ def updateMotionSensorsHandler(evt) {
 
 private updateMotionSensors() {
 
-	def ecobeeSensors = ecobee.currentRemoteSensorOccData.toString().split(",,")
+	def ecobeeSensors = ecobee.currentRemoteSensorOccData.toString().minus('[').minus(']').split(",,")
 //	log.debug "updateMotionSensors>ecobeeRemoteSensorOccData= $ecobeeSensors"
 
-	if (ecobeeSensors.size() < 1) {
+	if (!ecobeeSensors) {
 
 		log.debug "updateMotionSensors>no values found"
 		return
@@ -393,11 +391,11 @@ private updateTempSensors() {
 	def scale = getTemperatureScale()
     
 
-	def ecobeeSensors = ecobee.currentRemoteSensorTmpData.toString().split(",,")
+	def ecobeeSensors = ecobee.currentRemoteSensorTmpData.toString().minus('[').minus(']').split(",,")
 
 //	log.debug "updateTempSensors>ecobeeRemoteSensorTmpData= $ecobeeSensors"
 
-	if (ecobeeSensors.size() < 1) {
+	if (!ecobeeSensors) {
 
 		log.debug "updateTempSensors>no values found"
 		return
@@ -409,7 +407,7 @@ private updateTempSensors() {
 		def ecobeeSensorId = ecobeeSensorDetails[0]
 		def ecobeeSensorName = ecobeeSensorDetails[1]
 		def ecobeeSensorType = ecobeeSensorDetails[2]
-		def ecobeeSensorValue = ecobeeSensorDetails[3]
+		def ecobeeSensorValue = ecobeeSensorDetails[3].toDouble()
 
 
 		def dni = [app.id, ecobeeSensorName, getTempSensorChildName(), ecobeeSensorId].join('.')
@@ -436,9 +434,7 @@ private updateTempSensors() {
 		} else {
 			log.debug "updateTempSensors>couldn't find Temperature Sensor device $ecobeeSensorName with dni $dni, probably not selected originally"
 		}
-
 	}
-
 }
 
 
@@ -450,11 +446,11 @@ def updateHumiditySensorsHandler(evt) {
 private updateHumiditySensors() {
 
 
-	def ecobeeSensors = ecobee.currentRemoteSensorHumData.toString().split(",,")
+	def ecobeeSensors = ecobee.currentRemoteSensorHumData.toString().minus('[').minus(']').split(",,")
 
 //	log.debug "updateHumiditySensors>ecobeeRemoteSensorHumData= $ecobeeSensors"
 
-	if (ecobeeSensors.size() < 1) {
+	if (!ecobeeSensors) {
 
 		log.debug "updateHumiditySensors>no values found"
 		return
@@ -468,7 +464,6 @@ private updateHumiditySensors() {
 		def ecobeeSensorType = ecobeeSensorDetails[2]
 		def ecobeeSensorValue = ecobeeSensorDetails[3]
 
-
 		def dni = [app.id, ecobeeSensorName, getTempSensorChildName(), ecobeeSensorId].join('.')
 
 //		log.debug "updateHumiditySensors>looking for $dni"
@@ -481,7 +476,6 @@ private updateHumiditySensors() {
 //			log.debug "updateHumiditySensors>ecobeeSensorName= $ecobeeSensorName"
 //			log.debug "updateHumiditySensors>ecobeeSensorType= $ecobeeSensorType"
 //			log.debug "updateHumiditySensors>ecobeeSensorValue= $ecobeeSensorValue"
-            
             
 			Double humValue = ecobeeSensorValue.toDouble().round()
 			String humValueString = String.format('%2d', humValue.intValue())
