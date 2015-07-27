@@ -43,7 +43,7 @@ def about() {
  	dynamicPage(name: "about", install: false, uninstall: true) {
  		section("About") {	
 			paragraph "My Ecobee Init, the smartapp that connects your Ecobee thermostat to SmartThings via cloud-to-cloud integration"
-			paragraph "Version 2.0\n\n" +
+			paragraph "Version 2.0.1\n\n" +
 			"If you like this app, please support the developer via PayPal:\n\nyracine@yahoo.com\n\n" +
 			"Copyright©2014 Yves Racine"
 			href url:"http://github.com/yracine/device-type.myecobee", style:"embedded", required:false, title:"More information...", 
@@ -233,7 +233,7 @@ def getEcobeeThermostats(String type="") {
 	} catch (java.net.NoRouteToHostException t) {
 		log.error "getEcobeeThermostats> No route to host - check the URL " + deviceListParams.uri
 	} catch (java.io.IOException e) {
-		log.debug "getEcobeeThermostats> error getting list of thermostats, probable cause: not the right account for this type (${type}) of thermostat " +
+		log.debug "getEcobeeThermostats> error/exception ($e)  getting list of thermostats, probable cause: not the right account for this type (${type}) of thermostat " +
 			deviceListParams
     }
 
@@ -465,7 +465,7 @@ private void sendMsgWithDelay() {
 private send(msg) {
 	if (sendPushMessage != "No") {
 		log.debug("sending push message")
-		sendPush(msg)
+//		sendPush(msg)
 
 	}
 
