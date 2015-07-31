@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.1.7
+ *  Version 2.1.8
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -1160,12 +1160,10 @@ private void api(method, args, success = {}) {
 		}
 		if (!refresh_tokens()) {
 			login()
-			if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
-				log.error ("api>error: Unauthorized exception, not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
-				sendEvent (name: "verboseTrace", 
-					value: "api>error: Unauthorized exception, not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
-//				state.exceptionCount=0
-				return
+			def exceptionCheck=device.currentValue("verboseTrace")
+			if (exceptionCheck.contains("exception")) {
+				log.error ("api>$exceptionCheck, not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
+				sendEvent (name: "verboseTrace", value:"api>$exceptionCheck, not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")
 			}
 		} else {
         
@@ -1193,11 +1191,11 @@ private void api(method, args, success = {}) {
 	}
 	
 	if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
-		log.error ("api>error: found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
+		log.error ("api>error: found a high number of exceptions (${state.exceptionCount}) since last refresh_tokens, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
 		sendEvent (name: "verboseTrace", 
-			value: "api>error: found a high number of exceptions since last refresh_tokens() call, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
-		state.exceptionCount = 0 // reset?		
-	}    
+			value: "api>error: found a high number of exceptions (${state.exceptionCount}) since last refresh_tokens, probably need to re-authenticate with ecobee, run MyEcobeeInit....")         
+		state.exceptionCount=0
+	}   
 	def args_encoded = java.net.URLEncoder.encode(args.toString(), "UTF-8")
 	def methods = [
 		'thermostatSummary': 
@@ -3139,10 +3137,8 @@ def getModelNumber() {
 	return ((data.thermostatList[0].identifier)? data.thermostatList[0].modelNumber: "")
 }
 
-private def refresh_tokens() 
-	throws javax.net.ssl.SSLHandshakeException,groovyx.net.http.HttpResponseException,IOException,
-    	java.net.UnknownHostException,java.net.NoRouteToHostException {
-  
+private def refresh_tokens() {
+
 	if (!isTokenExpired()) {
 
 		if (settings.trace) {
@@ -3181,12 +3177,12 @@ private def refresh_tokens()
 		httpPostJson(method, successRefreshTokens)
 	} catch (java.net.UnknownHostException e) {
 		log.error "refresh_tokens> Unknown host - check the URL " + method.uri
-		sendEvent name: "verboseTrace", value: "refresh_tokens> Unknown host ${method.uri}"
+		sendEvent name: "verboseTrace", value: "refresh_tokens> exception $e, Unknown host ${method.uri}"
 		state.exceptionCount = state.exceptionCount +1      
 		return false
 	} catch (java.net.NoRouteToHostException e) {
 		log.error "refresh_tokens> No route to host - check the URL " + method.uri
-		sendEvent name: "verboseTrace", value: "refresh_tokens> No route to host"
+		sendEvent name: "verboseTrace", value: "refresh_tokens> exception $e, no route to host ${method.uri}"
 		state.exceptionCount = state.exceptionCount +1        
 		return false
 //	} catch (javax.net.ssl.SSLHandshakeException e) {
