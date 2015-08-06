@@ -424,8 +424,8 @@ def takeAction() {
 		log.error msg
 	}    
 	
-    Integer pollTimer = 55
-    Integer longDelayTimer = pollTimer*2.5	
+    Integer pollTimer = 60
+    Integer longDelayTimer = Math.round(pollTimer*2.5)
     
     runIn(pollTimer, takeAction, [overwrite: true])
 	runIn(longDelayTimer, longDelay, [overwrite: true])
