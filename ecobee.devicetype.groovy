@@ -203,7 +203,7 @@ metadata {
 		command "away"
 		command "present"
 		command "home"
-		command "sleep"
+		command "night"
 		command "quickSave"
 		command "setThisTstatClimate"
 		command "setThermostatSettings"
@@ -277,7 +277,7 @@ metadata {
 		}
 		standardTile("switchProgram", "device.programNameForUI", 
 			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
-			state "Home", label: '${name}', action: "sleep", 
+			state "Home", label: '${name}', action: "night", 
 				icon: "st.Home.home4"
 			state "Sleep", label: '${name}', action: "awake", 
  				icon: "st.Bedroom.bedroom2"
@@ -674,7 +674,7 @@ void home() {
 //	sendEvent(name: "presence", value: "present")
 
 }
-void sleep() {
+void night() {
 	setThisTstatClimate("Sleep")
 }
 void quickSave() {
@@ -714,7 +714,7 @@ void quickSave() {
   
 void setThisTstatClimate(climateName) {
 	def thermostatId= determine_tstat_id("") 	    
-	def currentProgram = device.currentValue("climateName")
+ 	def currentProgram = device.currentValue("climateName") 
 	def currentProgramType = device.currentValue("programType").trim().toUpperCase()
 	if (currentProgramType == 'VACATION') {
 		if (settings.trace) {
@@ -724,14 +724,20 @@ void setThisTstatClimate(climateName) {
 		}
 		return
 	}
-	// If climate is different from current one, then change it to the given climate
+    else if (currentProgramType == 'HOLD') {
+    	resumeProgram("")						// let's get back to normal first
+        currentProgram = device.currentValue("climateName")		// get what it is NOW
+        log.trace "Resuming scheduled climate: ${currentProgram}"
+    }
+ 
+	// If the requested climate is different from current one, then change it to the given climate
 	if (currentProgram.toUpperCase() != climateName.trim().toUpperCase()) {
-    
-		resumeProgram("")
+//		resumeProgram("")
+
 		setClimate(thermostatId, climateName)
 		def exceptionCheck=device.currentValue("verboseTrace")
-		if (exceptionCheck.contains("done")) {
-        
+		if (exceptionCheck.contains("setClimate>done")) {
+        	log.trace "setClimate ${climateName} done"
 			sendEvent(name: 'programScheduleName', value: climateName)
 			sendEvent(name: 'programNameForUI', value: climateName)
 // No presence in my version (BAB)
@@ -740,7 +746,9 @@ void setThisTstatClimate(climateName) {
 //			} else {        
 //				sendEvent(name: "presence", value: "present")
 //			}
-		}            
+		} else {
+        	log.trace "setClimate ${climateName} failed: ${exceptionCheck}"
+        }
 
 //		log.trace "setThisTstatClimate> poll()"
 		poll() // to refresh the values in the UI
