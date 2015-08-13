@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.1.8
+ *  Version 2.2
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -787,7 +787,7 @@ void poll() {
 	// determine if there is an event running
     
 	Integer indiceEvent = 0
-	Boolean foundEvent = false
+	boolean foundEvent = false
 	if (data.thermostatList[0].events.size > 0) {
 		for (i in 0..data.thermostatList[0].events.size() - 1) {
 			if (data.thermostatList[0].events[i].running) {
@@ -884,29 +884,29 @@ void poll() {
 			data.thermostatList[0].settings.fanMinOnTime.toString(),
 		programFanMode: (data.thermostatList[0].settings.hvacMode == 'cool')? currentClimate.coolFan : currentClimate.heatFan,
 		programNameForUI: progDisplayName,
-//		weatherStation:data.thermostatList[0].weather.weatherStation,
-//		weatherSymbol:data.thermostatList[0].weather.forecasts[0].weatherSymbol.toString(),
-//		weatherTemperature:data.thermostatList[0].weather.forecasts[0].temperature,
-//		weatherTemperatureDisplay:data.thermostatList[0].weather.forecasts[0].temperature,
-//		weatherDateTime:"Weather as of\n ${data.thermostatList[0].weather.forecasts[0].dateTime.substring(0,16)}",
-//		weatherCondition:data.thermostatList[0].weather.forecasts[0].condition,
-//		weatherTemp: data.thermostatList[0].weather.forecasts[0].temperature,
-//		weatherTempDisplay: data.thermostatList[0].weather.forecasts[0].temperature,
-//		weatherTempHigh: data.thermostatList[0].weather.forecasts[0].tempHigh, 
-//		weatherTempLow: data.thermostatList[0].weather.forecasts[0].tempLow,
-//		weatherTempHighDisplay: data.thermostatList[0].weather.forecasts[0].tempHigh, 
-//		weatherTempLowDisplay: data.thermostatList[0].weather.forecasts[0].tempLow,
-//		weatherWindSpeed: (data.thermostatList[0].weather.forecasts[0].windSpeed/1000),		// divided by 1000 for display
-//		weatherPressure:data.thermostatList[0].weather.forecasts[0].pressure.toString(),
-//		weatherRelativeHumidity:data.thermostatList[0].weather.forecasts[0].relativeHumidity,
-//		weatherWindDirection:data.thermostatList[0].weather.forecasts[0].windDirection + " Winds",
-//		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
+/*		weatherStation:data.thermostatList[0].weather.weatherStation,
+		weatherSymbol:data.thermostatList[0].weather.forecasts[0].weatherSymbol.toString(),
+		weatherTemperature:data.thermostatList[0].weather.forecasts[0].temperature,
+		weatherTemperatureDisplay:data.thermostatList[0].weather.forecasts[0].temperature,
+		weatherDateTime:"Weather as of\n ${data.thermostatList[0].weather.forecasts[0].dateTime.substring(0,16)}",
+		weatherCondition:data.thermostatList[0].weather.forecasts[0].condition,
+		weatherTemp: data.thermostatList[0].weather.forecasts[0].temperature,
+		weatherTempDisplay: data.thermostatList[0].weather.forecasts[0].temperature,
+		weatherTempHigh: data.thermostatList[0].weather.forecasts[0].tempHigh, 
+		weatherTempLow: data.thermostatList[0].weather.forecasts[0].tempLow,
+		weatherTempHighDisplay: data.thermostatList[0].weather.forecasts[0].tempHigh, 
+		weatherTempLowDisplay: data.thermostatList[0].weather.forecasts[0].tempLow,
+		weatherWindSpeed: (data.thermostatList[0].weather.forecasts[0].windSpeed/1000),		// divided by 1000 for display
+		weatherPressure:data.thermostatList[0].weather.forecasts[0].pressure.toString(),
+		weatherRelativeHumidity:data.thermostatList[0].weather.forecasts[0].relativeHumidity,
+		weatherWindDirection:data.thermostatList[0].weather.forecasts[0].windDirection + " Winds",
+*/		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
 		programCoolTemp:(currentClimate.coolTemp / 10),										// divided by 10 for display
 		programHeatTemp:(currentClimate.heatTemp / 10),
 		programCoolTempDisplay:(currentClimate.coolTemp / 10),										// divided by 10 for display
 		programHeatTempDisplay:(currentClimate.heatTemp / 10),
 		alerts: getAlerts(),
-		groups: (ecobeeType.toUpperCase() == 'REGISTERED')? getThermostatGroups(thermostatId) : 'No groups',
+//		groups: (ecobeeType.toUpperCase() == 'REGISTERED')? getThermostatGroups(thermostatId) : 'No groups',
 		climateList: getClimateList(),
 //		presence: (currentClimateTemplate.toUpperCase()!='AWAY')? "present":"not present",
 		heatStages:data.thermostatList[0].settings.heatStages.toString(),
