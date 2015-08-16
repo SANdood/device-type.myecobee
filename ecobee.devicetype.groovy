@@ -724,8 +724,9 @@ void setThisTstatClimate(climateName) {
 		}
 		return
 	}
-    else if (currentProgramType == 'HOLD') {
-    	resumeProgram("")						// let's get back to normal first
+    else if ((currentProgramType == 'HOLD') || (currentProgramType == "PROGRAM")) {
+    	resumeProgram("")		// let's get back to normal first
+    	poll()					// pick up the changed attributes (ideally we'd pause for a few seconds, but can't in a SmartDevice)
         currentProgram = device.currentValue("climateName")		// get what it is NOW
         log.trace "Resuming scheduled climate: ${currentProgram}"
     }
