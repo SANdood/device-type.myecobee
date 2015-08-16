@@ -901,8 +901,8 @@ void poll() {
 		weatherPressure:data.thermostatList[0].weather.forecasts[0].pressure.toString(),
 		weatherRelativeHumidity:data.thermostatList[0].weather.forecasts[0].relativeHumidity,
 		weatherWindDirection:data.thermostatList[0].weather.forecasts[0].windDirection + " Winds",
-*/		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
-		programCoolTemp:(currentClimate.coolTemp / 10),										// divided by 10 for display
+		weatherPop:data.thermostatList[0].weather.forecasts[0].pop.toString(),
+*/		programCoolTemp:(currentClimate.coolTemp / 10),										// divided by 10 for display
 		programHeatTemp:(currentClimate.heatTemp / 10),
 		programCoolTempDisplay:(currentClimate.coolTemp / 10),										// divided by 10 for display
 		programHeatTempDisplay:(currentClimate.heatTemp / 10),
