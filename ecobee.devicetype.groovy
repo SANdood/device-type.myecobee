@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 3.0.1
+ *  Version 3.1
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -1411,6 +1411,10 @@ private void doRequest(uri, args, type, success) {
 		sendEvent name: "verboseTrace", value:
 			"doRequest>exception $e for " + params.body
 		state.exceptionCount = state.exceptionCount +1
+		if (!(e.contains("TimeoutException"))) {
+			// introduce a 1 second delay before re-attempting any other command                    
+			delay(1000)                    
+		}		
 		throw e    
 	}
 }
@@ -3345,7 +3349,11 @@ private def refresh_tokens() {
 		log.debug "refresh_tokens>exception $e at " + method.uri
 		sendEvent name: "verboseTrace", value:
 			"refresh_tokens>exception $e at " + method.uri
-		state.exceptionCount = state.exceptionCount +1                   
+		state.exceptionCount = state.exceptionCount +1
+		if (!(e.contains("TimeoutException"))) {
+			// introduce a 1 second delay before re-attempting any other command                    
+			delay(1000)                    
+		}		
 		return false
 	}
 	// determine token's expire time
