@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.2.2
+ *  Version 2.2.4
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -204,6 +204,7 @@ metadata {
 		command "present"
 		command "home"
 		command "night"
+		command "asleep"
 		command "quickSave"
 		command "setThisTstatClimate"
 		command "setThermostatSettings"
@@ -718,6 +719,9 @@ void home() {
 
 }
 void night() {
+	setThisTstatClimate("Sleep")
+}
+void asleep() {
 	setThisTstatClimate("Sleep")
 }
 void quickSave() {
