@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.3.2
+ *  Version 2.3.3
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -1492,14 +1492,15 @@ void setThermostatSettings(thermostatId,tstatSettings = []) {
 			statusCode = resp.data.status.code
 			def message = resp.data.status.message
 			if (!statusCode) {
-//				if (settings.trace) {
-					sendEvent name: "verboseTrace", value:
-						"setThermostatSettings>done for ${thermostatId}", displayed: (settings.trace? true : false)
-//				}
-			} else {
-				log.error "setThermostatSettings> error=${statusCode.toString()}, message = ${message}"
 				sendEvent name: "verboseTrace", value:
-					"setThermostatSettings>error ${statusCode.toString()} for ${thermostatId}"
+						"setThermostatSettings>done for ${thermostatId}"
+			} else {
+				log.error 
+					"setThermostatSettings> error=${statusCode.toString()},message=${message} for ${thermostatId}"
+				sendEvent name: "verboseTrace", value: 
+					"setThermostatSettings> error=${statusCode.toString()},message=${message} for ${thermostatId}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000)                    
 			} /* end if statusCode */
 		} /* end api call */                
 	} /* end for */
@@ -1606,7 +1607,7 @@ void setHoldExtraParams(thermostatId, coolingSetPoint, heatingSetPoint, fanMode,
 
 	}
 	// Add the extraHoldParams if any
-	if ((extraHoldParams != null) && (extraHoldParams != [])) {
+ 	if ((extraHoldParams != null) && (extraHoldParams != [])) {
 		tstatParams = tstatParams + extraHoldParams
     		
 	}
@@ -1618,14 +1619,15 @@ void setHoldExtraParams(thermostatId, coolingSetPoint, heatingSetPoint, fanMode,
 			statusCode = resp.data.status.code
 			def message = resp.data.status.message
 			if (!statusCode) {
-//				if (settings.trace) {
-					sendEvent name: "verboseTrace", value:
-						"setHold>done for ${thermostatId}", displayed: (settings.trace? true : false)
-//				}
-			} else {
-				log.error "setHold> error=${statusCode.toString()}, message = ${message}"
 				sendEvent name: "verboseTrace", value:
-					"setHold>error ${statusCode.toString()} for ${thermostatId}"
+						"setHold>done for ${thermostatId}"
+			} else {
+				log.error 
+					"setHold> error=${statusCode.toString()},message=${message} for ${thermostatId}"
+				sendEvent name: "verboseTrace", value:
+					"setThermostatSettings> error=${statusCode.toString()},message=${message} for ${thermostatId}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000)                    
 			} /* end if statusCode */
 		} /* end api call */
         
@@ -1718,9 +1720,12 @@ void createVacation(thermostatId, vacationName, targetCoolTemp, targetHeatTemp,
 					"createVacation>done for ${thermostatId}", displayed: (settings.trace? true : false)
 //			}
 		} else {
-			log.error "createVacation>error=${statusCode.toString()}, message = ${message}"
-			sendEvent name: "verboseTrace", value:
-				"createVacation>error ${statusCode.toString()} for ${thermostatId}"
+			log.error 
+				"createVacation>error=${statusCode.toString()},message=${message} for ${thermostatId}"
+			sendEvent name: "verboseTrace", value: 
+				"createVacation>error=${statusCode.toString()},message=${message} for ${thermostatId}"
+			// introduce a 1 second delay before re-attempting any other command                    
+			delay(1000) 
 		}
 	}
 }
@@ -1786,9 +1791,11 @@ void deleteVacation(thermostatId, vacationName) {
 					"deleteVacation>done for ${thermostatId}", displayed: (settings.trace? true : false)
 //			}
 		} else {
-			log.error "deleteVacation> error= ${statusCode.toString()}, message = ${message}"
+			log.error "deleteVacation> error= ${statusCode.toString()},message=${message} for ${thermostatId}"
 			sendEvent name: "verboseTrace", value:
-				"deleteVacation>error ${statusCode.toString()} for ${thermostatId}"
+				"deleteVacation>error ${statusCode.toString()},message=${message} for ${thermostatId}"
+			// introduce a 1 second delay before re-attempting any other command                    
+			delay(1000) 
 		}
 	}
 }
@@ -1921,9 +1928,12 @@ def getGroups(thermostatId) {
 				}
 			}
 		} else {
-			log.error "getGroups>> error=${statusCode.toString()}, message = ${message}"
+			log.error 
+				"getGroups>> error=${statusCode.toString()},message=${message} for ${thermostatId}" 
 			sendEvent name: "verboseTrace", value:
-				"getGroups>error ${statusCode.toString()} for ${thermostatId}"
+				"getGroups>error ${statusCode.toString()},message=${message} for ${thermostatId}"
+			// introduce a 1 second delay before re-attempting any other command                    
+			delay(1000)   
 		}
 	}
 }
@@ -2012,9 +2022,12 @@ void updateGroup(groupRef, groupName, thermostatId, groupSettings = []) {
 						"updateGroup>done for groupName =${groupName}, ${thermostatId}", displayed: (settings.trace? true : false)
 //				}
 			} else {
-				log.error "updateGroup> error=${statusCode.toString()}, message = ${message}"
+				log.error 
+					"updateGroup> error=${statusCode.toString()},message=${message} for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"updateGroup>error ${statusCode.toString()} for ${thermostatId}"
+					"updateGroup>error ${statusCode.toString()},message=${message} for ${thermostatId}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000) 
 			} /* end if statusCode */
 		} /* end api call */                
                         
@@ -2052,9 +2065,12 @@ void deleteGroup(groupRef, groupName) {
 					"deleteGroup>done for groupName =${groupName},groupRef = ${groupRef}", displayed: (settings.trace? true : false)
 //			}
 		} else {
-			log.error "deleteGroup> error=  ${statusCode.toString()}, message = ${message}"
+			log.error 
+				"deleteGroup> error= ${statusCode.toString()},message= ${message} for ${groupName},groupRef= ${groupRef}"
 			sendEvent name: "verboseTrace", value:
-				"deteteGroup>error ${statusCode.toString()} for ${groupName},groupRef = ${groupRef}"
+				"deteteGroup>error ${statusCode.toString()},message= ${message} for ${groupName},groupRef= ${groupRef}"
+			// introduce a 1 second delay before re-attempting any other command                    
+			delay(1000)   
 		}
 	}
 }
@@ -2184,9 +2200,12 @@ void setClimate(thermostatId, climateName, paramsMap=[]) {
 							"setClimate>done for thermostatId =${data.thermostatList[i].identifier},climateName =${climateName}"
 //					}
 				} else {
-					log.error "setClimate>error=${statusCode.toString()} while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
+					log.error 
+						"setClimate>error ${statusCode.toString()},message=${message} while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
 					sendEvent name: "verboseTrace", value:
-						"setClimate>error ${statusCode.toString()} while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
+						"setClimate>error ${statusCode.toString()},message=${message} while setting climate ${climateName} for thermostatId =${data.thermostatList[i].identifier}"
+					// introduce a 1 second delay before re-attempting any other command                    
+					delay(1000)
 				} /* end if statusCode */
 			} /* end api call */                   
 		} /* end while */               
@@ -2381,9 +2400,12 @@ void updateClimate(thermostatId, climateName, deleteClimateFlag,
 						"updateClimate>done for thermostatId =${thermostatId},climateName =${climateName}", displayed: (settings.trace? true : false)
 //				}
 			} else {
-				log.error "updateClimate>error=${statusCode.toString()}, message = ${message}"
-				sendEvent name: "verboseTrace", value:"updateClimate>error ${statusCode.toString()} for ${climateName}"
-
+				log.error 
+					"updateClimate>error=${statusCode.toString()},message=${message} for thermostatId =${thermostatId},climateName =${climateName}"
+				sendEvent name: "verboseTrace", value:
+					"updateClimate>error ${statusCode.toString()},message=${message} for thermostatId =${thermostatId},climateName =${climateName}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000)  
 			} /* end if statusCode */
 		} /* end api call */               
 	} /* end for */
@@ -2438,9 +2460,12 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
 				}
 				generateEvent(plugEvents)
 			} else {
-				log.error "controlPlug>error=${statusCode.toString()}, message = ${message}"
+				log.error 
+					"controlPlug>error=${statusCode.toString()},message=${message} for thermostatId =${thermostatId},plugName =${plugName}"
 				sendEvent name: "verboseTrace", value:
-					"controlPlug>error ${statusCode.toString()} for ${plugName}"
+					"controlPlug>error ${statusCode.toString()},message=${message} for thermostatId =${thermostatId},plugName =${plugName}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000) 
 			} /* end if statusCode */
 		} /* end api call */               
 	} /* end while */
@@ -2586,9 +2611,12 @@ void getReportData(thermostatId, startDateTime, endDateTime, startInterval, endI
         	    sendEvent name: "verboseTrace", value:"getReportData>done for thermostatId ${thermostatId}", displayed: (settings.trace? true : false)
         	    
 			} else {
-				log.error "getReportData> error=${statusCode.toString()}, message = ${message}"
+				log.error 
+					"getReportData> error=${statusCode.toString()},message=${message} for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"getReportData>error=${statusCode} for ${thermostatId}"
+					"getReportData>error=${statusCode},message= ${message} for ${thermostatId}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000) 
 			} /* end if statusCode */
 		} /* end api call */                
 	} /* end while */
@@ -3064,9 +3092,12 @@ void getThermostatInfo(thermostatId=settings.thermostatId) {
 				sendEvent name: "verboseTrace", value:
 					"getTstatInfo>done for ${thermostatId}", displayed: (settings.trace? true : false)
 			} else {
-				log.error "getThermostatInfo> error=${statusCode.toString()} - ${statusCode}, message = ${message}"
+				log.error 
+					"getThermostatInfo> error=${statusCode.toString()},message=${message} for ${thermostatId}"
 				sendEvent name: "verboseTrace", value:
-					"getThermostatInfo>error=${statusCode} for ${thermostatId}"
+					"getTstatInfo>error=${statusCode},message=${message} for ${thermostatId}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000)
 			} /* end if statusCode */                 
 		} /* end api call */
 	} /* end while */
@@ -3179,9 +3210,12 @@ void getThermostatSummary(tstatType) {
 				sendEvent name: "verboseTrace", value:
 					"getTstatSummary>done", displayed: (settings.trace? true : false)
 			} else {
-				log.error "getThermostatSummary> error=${statusCode.toString()}, message = ${message}"
+				log.error
+					"getThermostatSummary> error=${statusCode.toString()},message=${message}"
 				sendEvent name: "verboseTrace", value:
-					"getTstatSummary> error= ${statusCode.toString()}"
+					"getTstatSummary> error= ${statusCode.toString()},message=${message}"
+				// introduce a 1 second delay before re-attempting any other command                    
+				delay(1000) 
 			} /* end if statusCode */
 		}  /* end api call */              
 	} /* end while */
