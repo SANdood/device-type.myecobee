@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 3.0
+ *  Version 3.0.1
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -1005,37 +1005,58 @@ void poll() {
 	generateEvent(dataEvents)
 
 // Only need to send these once, or when they change (rarely)    
+//	if (data.thermostatList[0].settings.hasHumidifier) {
+//		def humidifierMode = data.thermostatList[0].settings.humidifierMode
+//		if (isStateChange(device, 'humidifierMode', humidifierMode)) {
+//			sendEvent(name: 'humidifierMode', value: humidifierMode, isStateChange: true, displayed: true)
+//        }		
+//        def humidifierLevel = data.thermostatList[0].settings.humidity
+//        if (isStateChange(device, 'humidifierLevel', humidifierLevel.toString())) {
+//        	sendEvent(name: 'humidifierLevel', value: humidifierLevel, unit: "%", isStateChange: true, displayed: true)
+//        }
+//	}
+//	
+//	if ((data.thermostatList[0].settings.hasDehumidifier) || (data.thermostatList[0].settings.dehumidifyWithAC)) {
+//		def dehumidifierMode = data.thermostatList[0].settings.dehumidifierMode
+//		if (isStateChange(device, 'dehumidifierMode', dehumidifierMode)) {
+//			sendEvent(name: 'dehumidifierMode', value: dehumidifierMode, isStateChange: true, displayed: true)
+//        }		
+//        def dehumidifierLevel = data.thermostatList[0].settings.dehumidifierLevel
+//        if (isStateChange(device, 'dehumidifierLevel', dehumidifierLevel.toString())) {
+//        	sendEvent(name: 'dehumidifierLevel', value: dehumidifierLevel, unit: "%", isStateChange: true, displayed: true)
+//        }		
+//	}
+//	
+//	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings.hasErv)) {
+//		def ventilatorMonOnTime = data.thermostatList[0].settings.ventilatorMinOnTime
+//		if (isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime.toString())) {
+//			sendEvent(name: 'ventilatorMinOnTime', value: ventilatorMinOnTime, isStateChange: true, displayed: true)
+//        }		
+//        def ventilatorMode = data.thermostatList[0].settings.vent
+//        if (isStateChange(device, 'ventilatorMode', ventilatorMode)) {
+//        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, isStateChange: true, displayed: true)
+//        }		
+//	}
 	if (data.thermostatList[0].settings.hasHumidifier) {
-		def humidifierMode = data.thermostatList[0].settings.humidifierMode
-		if (isStateChange(device, 'humidifierMode', humidifierMode)) {
-			sendEvent(name: 'humidifierMode', value: humidifierMode, isStateChange: true, displayed: true)
-        }		
-        def humidifierLevel = data.thermostatList[0].settings.humidity
-        if (isStateChange(device, 'humidifierLevel', humidifierLevel.toString())) {
-        	sendEvent(name: 'humidifierLevel', value: humidifierLevel, unit: "%", isStateChange: true, displayed: true)
-        }
+		dataEvents = [
+			humidifierMode: data.thermostatList[0].settings.humidifierMode,
+			humidifierLevel:data.thermostatList[0].settings.humidity
+		]
+		generateEvent(dataEvents)        
 	}
-	
-	if ((data.thermostatList[0].settings.hasDehumidifier) || (data.thermostatList[0].settings.dehumidifyWithAC)) {
-		def dehumidifierMode = data.thermostatList[0].settings.dehumidifierMode
-		if (isStateChange(device, 'dehumidifierMode', dehumidifierMode)) {
-			sendEvent(name: 'dehumidifierMode', value: dehumidifierMode, isStateChange: true, displayed: true)
-        }		
-        def dehumidifierLevel = data.thermostatList[0].settings.dehumidifierLevel
-        if (isStateChange(device, 'dehumidifierLevel', dehumidifierLevel.toString())) {
-        	sendEvent(name: 'dehumidifierLevel', value: dehumidifierLevel, unit: "%", isStateChange: true, displayed: true)
-        }		
+	if (data.thermostatList[0].settings.hasDehumidifier) {
+		dataEvents = [
+			dehumidifierMode: data.thermostatList[0].settings.dehumidifierMode,
+			dehumidifierLevel:data.thermostatList[0].settings.dehumidifierLevel
+		]            
+		generateEvent(dataEvents)                    
 	}
-	
 	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings.hasErv)) {
-		def ventilatorMonOnTime = data.thermostatList[0].settings.ventilatorMinOnTime
-		if (isStateChange(device, 'ventilatorMinOnTime', ventilatorMinOnTime.toString())) {
-			sendEvent(name: 'ventilatorMinOnTime', value: ventilatorMinOnTime, isStateChange: true, displayed: true)
-        }		
-        def ventilatorMode = data.thermostatList[0].settings.vent
-        if (isStateChange(device, 'ventilatorMode', ventilatorMode)) {
-        	sendEvent(name: 'ventilatorMode', value: ventilatorMode, isStateChange: true, displayed: true)
-        }		
+		dataEvents = [
+			ventilatorMinOnTime:data.thermostatList[0].settings.ventilatorMinOnTime.toString(),
+			ventilatorMode: data.thermostatList[0].settings.vent
+		]            
+		generateEvent(dataEvents)                    
 	}
 	if (settings.trace) {
 	    log.trace 'poll> done!'
