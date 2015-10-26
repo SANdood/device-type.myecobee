@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.3.3
+ *  Version 3.0
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -35,10 +35,10 @@ preferences {
 metadata {
 	// Automatically generated. Make future change here.
 	definition(name: "My Ecobee Device", author: "Yves Racine",  namespace: "yracine") {
+		capability "Thermostat"
 		capability "Relative Humidity Measurement"
 		capability "Temperature Measurement"
 		capability "Polling"
-		capability "Thermostat"
 		capability "Refresh"
 //		capability "Presence Sensor"
 		capability "Actuator"
@@ -222,38 +222,28 @@ metadata {
 	simulator {
 		// TODO: define status and reply messages here
 	}
-	tiles {
-		valueTile("name", "device.thermostatName", inactiveLabel: false, width: 1,
-			height: 1, decoration: "flat") {
+	tiles(scale: 2) { 
+		multiAttributeTile(name:"summary", type: "lighting", width: 6, height: 4, canChangeIcon: false){
+			tileAttribute ("device.temperatureDisplay", key: "PRIMARY_CONTROL") {
+				attributeState ("temperature", label:'${currentValue}°', backgroundColor:"#44b621", 					
+					icon:"st.Home.home1", unit:"F"       
+				)
+        	}
+			tileAttribute ("device.equipmentStatus", key: "SECONDARY_CONTROL") {
+				attributeState "equipmentStatus", label:'${currentValue}'
+			}
+		}
+    
+		valueTile("name", "device.thermostatName", inactiveLabel: false, width: 2,
+			height: 2, decoration: "flat") {
 			state "default", label: '${currentValue}\n'
 		}
-		valueTile("groups", "device.groups", inactiveLabel: false, width: 1, 
-			height: 1, decoration: "flat") {
+		valueTile("groups", "device.groups", inactiveLabel: false, width: 2, 
+			height: 2, decoration: "flat") {
 			state "default", label: '${currentValue}'
 		}
-		valueTile("temperature", "device.temperatureDisplay", width: 2, height: 2,
-			canChangeIcon: false) {
-			state("temperature", label:'${currentValue}°', unit:"F",
-				backgroundColors:[
-					[value: 0, color: "#153591"],
-					[value: 7, color: "#1e9cbb"],
-					[value: 15, color: "#90d2a7"],
-					[value: 23, color: "#44b621"],
-					[value: 29, color: "#f1d801"],
-					[value: 33, color: "#d04e00"],
-					[value: 36, color: "#bc2323"],
-					// Fahrenheit Color Range
-					[value: 40, color: "#153591"],
-					[value: 44, color: "#1e9cbb"],
-					[value: 59, color: "#90d2a7"],
-					[value: 74, color: "#44b621"],
-					[value: 84, color: "#f1d801"],
-					[value: 92, color: "#d04e00"],
-					[value: 96, color: "#bc2323"]
-				]) 
-		}
 		standardTile("mode", "device.thermostatMode", inactiveLabel: false,
-			decoration: "flat") {
+			decoration: "flat", width: 2, height: 2,) {
 			state "heat", label: '${name}', action: "thermostat.off", 
 				icon: "st.Weather.weather14", backgroundColor: "#ffffff"
 			state "off", label: '${name}', action: "thermostat.cool", 
@@ -263,16 +253,69 @@ metadata {
 			state "auto", action: "thermostat.heat", 
 				icon: "st.thermostat.auto"
 		}
+        
 		standardTile("fanMode", "device.thermostatFanMode", inactiveLabel: false,
-			decoration: "flat") {
+			decoration: "flat", width: 2, height: 2,) {
 			state "auto", label: '${name}', action: "thermostat.fanOn", 
 				icon: "st.Appliances.appliances11"
 			state "on", label: '${name}', action: "thermostat.fanAuto", 
 				icon: "st.Appliances.appliances11"
 		}
+		standardTile("heatLevelUp", "device.heatingSetpoint", width: 3, height: 1, canChangeIcon: false, inactiveLabel: false, decoration: "flat") {
+			state "heatLevelUp", label:'Heat', action:"heatLevelUp", icon:"st.thermostat.thermostat-up"
+		}
+		valueTile("heatingSetpoint", "device.heatingSetpointDisplay", width: 3, height: 2, inactiveLabel: false) {
+			state "heat", label:'${currentValue}°', unit:"F",
+			backgroundColors:[
+				[value: 0, color: "#153591"],
+				[value: 7, color: "#1e9cbb"],
+				[value: 15, color: "#90d2a7"],
+				[value: 23, color: "#44b621"],
+				[value: 29, color: "#f1d801"],
+				[value: 33, color: "#d04e00"],
+				[value: 36, color: "#bc2323"],
+				// Fahrenheit Color Range
+				[value: 40, color: "#153591"],
+				[value: 44, color: "#1e9cbb"],
+				[value: 59, color: "#90d2a7"],
+				[value: 74, color: "#44b621"],
+				[value: 84, color: "#f1d801"],
+				[value: 92, color: "#d04e00"],
+				[value: 96, color: "#bc2323"]
+			]                    
+		}
+		standardTile("heatLevelDown", "device.heatingSetpoint", width: 3, height: 1, canChangeIcon: false, inactiveLabel: false, decoration: "flat") {
+			state "heatLevelDown", label:'Heat', action:"heatLevelDown", icon:"st.thermostat.thermostat-down"
+		}
+		standardTile("coolLevelUp", "device.coolingSetpoint", width: 3, height: 1, canChangeIcon: false, inactiveLabel: false, decoration: "flat") {
+			state "coolLevelUp", label:'Cool', action:"coolLevelUp", icon:"st.thermostat.thermostat-up"
+		}
+		valueTile("coolingSetpoint", "device.coolingSetpointDisplay", width: 3, height: 2, inactiveLabel: false) {
+			state "cool", label:'${currentValue}°', unit:"F",
+			backgroundColors:[
+				[value: 0, color: "#153591"],
+				[value: 7, color: "#1e9cbb"],
+				[value: 15, color: "#90d2a7"],
+				[value: 23, color: "#44b621"],
+				[value: 29, color: "#f1d801"],
+				[value: 33, color: "#d04e00"],
+				[value: 36, color: "#bc2323"],
+				// Fahrenheit Color Range
+				[value: 40, color: "#153591"],
+				[value: 44, color: "#1e9cbb"],
+				[value: 59, color: "#90d2a7"],
+				[value: 74, color: "#44b621"],
+				[value: 84, color: "#f1d801"],
+				[value: 92, color: "#d04e00"],
+				[value: 96, color: "#bc2323"]
+			]
+		}
+		standardTile("coolLevelDown", "device.coolingSetpoint", width: 3, height: 1, canChangeIcon: false, inactiveLabel: false, decoration: "flat") {
+			state "coolLevelDown", label:'Cool', action:"coolLevelDown", icon:"st.thermostat.thermostat-down"
+		}
 		standardTile("switchProgram", "device.programNameForUI", 
-			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
-			state "Home", label: '${name}', action: "night", 
+			inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+			state "Home", label: '${name}', action: "sleep", 
 				icon: "st.Home.home4"
 			state "Sleep", label: '${name}', action: "awake", 
  				icon: "st.Bedroom.bedroom2"
@@ -285,175 +328,173 @@ metadata {
 			state "Custom", label: 'Custom', action: "resumeThisTstat", 
 				icon: "st.Office.office6"
 		}
-		valueTile("heatingSetpoint", "device.heatingSetpointDisplay", inactiveLabel: false,
-			decoration: "flat") {
-			state "heat", label: '${currentValue}° heat', unit: "F", 
-			backgroundColor: "#ffffff"
-		}
-		valueTile("coolingSetpoint", "device.coolingSetpointDisplay", inactiveLabel: false,
-			decoration: "flat") {
-			state "cool", label: '${currentValue}° cool', unit: "F", 
-			backgroundColor: "#ffffff"
-		}
-		valueTile("humidity", "device.humidity", inactiveLabel: false) {
-			state "humidity", label:'${currentValue}%\nhumidity', unit:"%", backgroundColors: [
+		valueTile("humidity", "device.humidity", inactiveLabel: false, 
+			decoration: "flat", width: 2, height: 2,) {
+			state "default", label: 'Humidity\n${currentValue}%', unit: "humidity",
+				backgroundColors: [
             		[value:   0, color: "#0033cc"],
                     [value: 100, color: "#ff66ff"]
-            ]
+            	]
 		}
-		standardTile("heatLevelUp", "device.heatingSetpoint", canChangeIcon: false,
-			inactiveLabel: false, decoration: "flat") {
-			state "heatLevelUp", label: '  ', action: "heatLevelUp", 
-			icon: "st.thermostat.thermostat-up"
-		}
-		standardTile("heatLevelDown", "device.heatingSetpoint", canChangeIcon: false,
-			inactiveLabel: false, decoration: "flat") {
-			state "heatLevelDown", label: '  ', action: "heatLevelDown", 
- 			icon:"st.thermostat.thermostat-down"
-		}
-		standardTile("coolLevelUp", "device.coolingSetpoint", canChangeIcon: false,
-			inactiveLabel: false, decoration: "flat") {
-			state "coolLevelUp", label: '  ', action: "coolLevelUp", 
-			icon: "st.thermostat.thermostat-up"
-		}
-		standardTile("coolLevelDown", "device.coolingSetpoint", canChangeIcon: false,
-			inactiveLabel: false, decoration: "flat") {
-			state "coolLevelDown", label: '  ', action: "coolLevelDown", 
-			icon: "st.thermostat.thermostat-down"
-		}
-		valueTile("equipStatus", "device.equipmentStatus", inactiveLabel: false,
-			decoration: "flat", width: 3, height: 1) {
-			state "default", label: '${currentValue}'
-		}
+
 //		One could also use thermostatOperatingState as display value for equipStatus (in line with default ecobee device's status)
 //		However, it does not contain humidifier/dehumidifer/HRV/ERV/aux heat
 //		components' running states, just the basic thermostat states (heating, cooling, fan only).
 //		To use this tile instead of the above, just comment out the above tile, and remove comments below.
 		standardTile("operatingState", "device.thermostatOperatingState", inactiveLabel: false,
-			decoration: "flat", width: 1, height: 1) {
+			decoration: "flat", width: 2, height: 2) {
 			state "heating", icon: "st.thermostat.heating"
 			state "cooling", icon: "st.thermostat.cooling"
 			state "fan only", icon: "st.thermostat.fan-circulate"
 			state "idle", icon: "st.thermostat.heating-cooling-off"
 			state "default", label: '${currentValue}'
 		}
-		valueTile("programEndTimeMsg", "device.programEndTimeMsg", inactiveLabel:
-			false, decoration: "flat", width: 3, height: 1) {
+//		One could also use thermostatOperatingState as display value for equipStatus (in line with default ecobee device's status)
+//		However, it does not contain humidifier/dehumidifer/HRV/ERV/aux heat
+//		components' running states, just the basic thermostat states (heating, cooling, fan only).
+//		To use this tile instead of the above, just comment out the above tile, and remove comments below.
+//		valueTile("equipStatus", "device.thermostatOperatingState", inactiveLabel: false,
+//			decoration: "flat", width: 3, height: 1) {
+//			state "default", label: '${currentValue}'
+//		}
+
+/*
+		valueTile("equipStatus", "device.equipmentStatus", inactiveLabel: false,
+			decoration: "flat", width: 6, height: 2) {
 			state "default", label: '${currentValue}'
 		}
-		valueTile("fanMinOnTime", "device.fanMinOnTime", inactiveLabel: false,
-			decoration: "flat", width: 1, height: 1) {
-			state "default", label: 'FanMin\n${currentValue}'
+*/        
+		valueTile("programEndTimeMsg", "device.programEndTimeMsg", inactiveLabel:
+			false, decoration: "flat", width: 3, height: 2) {
+			state "default", label: '${currentValue}'
 		}
 		valueTile("alerts", "device.alerts", inactiveLabel: false, decoration: "flat",
-			width: 2, height: 1) {
+			width: 3, height: 2) {
 			state "default", label: '${currentValue}'
+		}
+        
+		valueTile("fanMinOnTime", "device.fanMinOnTime", inactiveLabel: false,
+			decoration: "flat", width: 2, height: 2) {
+			state "default", label: 'FanMin\n${currentValue}'
 		}
 		// Program Tiles
 		valueTile("programScheduleName", "device.programScheduleName", inactiveLabel:
-			false, width: 1, height: 1, decoration: "flat") {
+			false, width: 2, height: 2, decoration: "flat") {
 			state "default", label: 'Mode\n${currentValue}'
 		}
-		valueTile("programType", "device.programType", inactiveLabel: false, width: 1,
-			height: 1, decoration: "flat") {
+		valueTile("programType", "device.programType", inactiveLabel: false, width: 2,
+			height: 2, decoration: "flat") {
 			state "default", label: 'Prog Type\n${currentValue}'
 		}
 		valueTile("programCoolTemp", "device.programCoolTempDisplay", inactiveLabel: false,
-			width: 1, height: 1, decoration: "flat") {
+			width: 2, height: 2, decoration: "flat") {
 			state "default", label: 'Prog Cool\n${currentValue}°'
 		}
 		valueTile("programHeatTemp", "device.programHeatTempDisplay", inactiveLabel: false,
-			width: 1, height: 1, decoration: "flat") {
+			width: 2, height: 2, decoration: "flat") {
 			state "default", label: 'Prog Heat\n${currentValue}°'
 		}
 		standardTile("resProgram", "device.thermostatMode", inactiveLabel: false,
-			decoration: "flat") {
+			decoration: "flat",width: 2, height: 2) {
 			state "default", label: 'ResumeProg', action: "resumeThisTstat", 
             		icon: "st.Office.office7", backgroundColor: "#ffffff"
 		}
 		// Weather Tiles
-//		standardTile("weatherIcon", "device.weatherSymbol", inactiveLabel: false, width: 1, height: 1,
-//			decoration: "flat") {
-//			state "-2",			label: 'updating...',		icon: "st.unknown.unknown.unknown"
-//			state "0",			label: 'Sunny',			icon: "st.Weather.weather14"
-//			state "1",			label: 'FewClouds',		icon: "st.Weather.weather15"
-//			state "2",			label: 'PartlyCloudy',		icon: "st.Weather.weather15"
-//			state "3",			label: 'MostlyCloudy',		icon: "st.Weather.weather15"
-//			state "4",			label: 'Overcast',		icon: "st.Weather.weather13"
-//			state "5",			label: 'Drizzle',		icon: "st.Weather.weather9"
-//			state "6",			label: 'Rain',			icon: "st.Weather.weather10"
-//			state "7",			label: 'FreezingRain',		icon: "st.Weather.weather10"
-//			state "8",			label: 'Showers',		icon: "st.Weather.weather10"
-//			state "9",			label: 'Hail',			icon: "st.custom.wuk.sleet"
-//			state "10",			label: 'Snow',			icon: "st.Weather.weather6"
-//			state "11",			label: 'Flurries',		icon: "st.Weather.weather6"
-//			state "12",			label: 'Sleet',			icon: "st.Weather.weather6"
-//			state "13",			label: 'Blizzard',		icon: "st.Weather.weather7"
-//			state "14",			label: 'Pellets',		icon: "st.custom.wuk.sleet"
-//			state "15",			label: 'ThunderStorms',		icon: "st.custom.wuk.tstorms"
-//			state "16",			label: 'Windy',			icon: "st.Transportation.transportation5"
-//			state "17",			label: 'Tornado',		icon: "st.Weather.weather1"
-//			state "18",			label: 'Fog',			icon: "st.Weather.weather13"
-//			state "19",			label: 'Hazy',			icon: "st.Weather.weather13"
-//			state "20",			label: 'Smoke',			icon: "st.Weather.weather13"
-//			state "21",			label: 'Dust',			icon: "st.Weather.weather13"
-//		}
-//		valueTile("weatherDateTime", "device.weatherDateTime", inactiveLabel: false,
-//			width: 2, height: 1, decoration: "flat") {
-//			state "default", label: '${currentValue}'
-//		}
-//		valueTile("weatherConditions", "device.weatherCondition", 
-//			inactiveLabel: false, width: 2, height: 1, decoration: "flat") {
-//			state "default", label: 'Forecast\n${currentValue}'
-//		}
-//		valueTile("weatherTemperature", "device.weatherTemperatureDisplay", inactiveLabel:
-//			false, width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'Out Temp\n${currentValue}°', unit: "C"
-//		}
-//		valueTile("weatherRelativeHumidity", "device.weatherRelativeHumidity",
-//			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'Out Hum\n${currentValue}%', unit: "humidity"
-//		}
-//		valueTile("weatherTempHigh", "device.weatherTempHigh", inactiveLabel: false,
-//			width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'FcastHigh\n${currentValue}°', unit: "C"
-//		}
-//		valueTile("weatherTempLow", "device.weatherTempLow", inactiveLabel: false,
-//			width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'FcastLow\n${currentValue}°', unit: "C"
-//		}
-//		valueTile("weatherPressure", "device.weatherPressure", inactiveLabel: false,
-//			width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'Pressure\n${currentValue}', unit: "hpa"
-//		}
-//		valueTile("weatherWindDirection", "device.weatherWindDirection",
-//			inactiveLabel: false, width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'W.Dir\n${currentValue}'
-//		}
-//		valueTile("weatherWindSpeed", "device.weatherWindSpeed", inactiveLabel: false,
-//			width: 1, height: 1, decoration: "flat") {
-//			state "default", label: 'W.Speed\n${currentValue}'
-//		}
-//		valueTile("weatherPop", "device.weatherPop", inactiveLabel: false, width: 1,
-//			height: 1, decoration: "flat") {
-//			state "default", label: 'PoP\n${currentValue}%', unit: "%"
-//		}
-		standardTile("refresh", "device.thermostatMode", inactiveLabel: false,
+/*		standardTile("weatherIcon", "device.weatherSymbol", inactiveLabel: false, width: 2, height: 2,
 			decoration: "flat") {
-			state "default", action: "refresh.refresh", icon: "st.secondary.refresh"
+			state "-2",			label: 'updating...',		icon: "st.unknown.unknown.unknown"
+			state "0",			label: 'Sunny',			icon: "st.Weather.weather14"
+			state "1",			label: 'FewClouds',		icon: "st.Weather.weather15"
+			state "2",			label: 'PartlyCloudy',		icon: "st.Weather.weather15"
+			state "3",			label: 'MostlyCloudy',		icon: "st.Weather.weather15"
+			state "4",			label: 'Overcast',		icon: "st.Weather.weather13"
+			state "5",			label: 'Drizzle',		icon: "st.Weather.weather9"
+			state "6",			label: 'Rain',			icon: "st.Weather.weather10"
+			state "7",			label: 'FreezingRain',		icon: "st.Weather.weather10"
+			state "8",			label: 'Showers',		icon: "st.Weather.weather10"
+			state "9",			label: 'Hail',			icon: "st.custom.wuk.sleet"
+			state "10",			label: 'Snow',			icon: "st.Weather.weather6"
+			state "11",			label: 'Flurries',		icon: "st.Weather.weather6"
+			state "12",			label: 'Sleet',			icon: "st.Weather.weather6"
+			state "13",			label: 'Blizzard',		icon: "st.Weather.weather7"
+			state "14",			label: 'Pellets',		icon: "st.custom.wuk.sleet"
+			state "15",			label: 'ThunderStorms',		icon: "st.custom.wuk.tstorms"
+			state "16",			label: 'Windy',			icon: "st.Transportation.transportation5"
+			state "17",			label: 'Tornado',		icon: "st.Weather.weather1"
+			state "18",			label: 'Fog',			icon: "st.Weather.weather13"
+			state "19",			label: 'Hazy',			icon: "st.Weather.weather13"
+			state "20",			label: 'Smoke',			icon: "st.Weather.weather13"
+			state "21",			label: 'Dust',			icon: "st.Weather.weather13"
 		}
-		main "temperature"
-		details([/* "name", */ /* "groups",*/ "humidity", "operatingState", "mode", "temperature", "fanMode", "switchProgram",
-			"heatLevelDown", "heatingSetpoint", "heatLevelUp", "coolLevelDown",
-			"coolingSetpoint", "coolLevelUp",
-			"equipStatus", "programEndTimeMsg",  "alerts",
-			"fanMinOnTime", "programScheduleName", "programType", "programCoolTemp",
-			"programHeatTemp", "resProgram",
+		valueTile("weatherDateTime", "device.weatherDateTime", inactiveLabel: false,
+			width: 3, height: 2, decoration: "flat") {
+			state "default", label: '${currentValue}'
+		}
+		valueTile("weatherConditions", "device.weatherCondition", 
+			inactiveLabel: false, width: 3, height: 2, decoration: "flat") {
+			state "default", label: 'Forecast\n${currentValue}'
+		}
+		valueTile("weatherTemperature", "device.weatherTemperatureDisplay", inactiveLabel:
+			false, width: 2, height: 2, decoration: "flat") {
+			state "default", label: 'Out Temp\n${currentValue}°', unit: "C"
+		}
+		valueTile("weatherRelativeHumidity", "device.weatherRelativeHumidity",
+			inactiveLabel: false, width: 2, height: 2,decoration: "flat") {
+			state "default", label: 'Out Hum\n${currentValue}%', unit: "humidity"
+		}
+		valueTile("weatherTempHigh", "device.weatherTempHigh", inactiveLabel: false,
+			width: 2, height: 2, decoration: "flat") {
+			state "default", label: 'ForecastH\n${currentValue}°', unit: "C"
+		}
+		valueTile("weatherTempLow", "device.weatherTempLow", inactiveLabel: false,
+			width: 2, height: 2, decoration: "flat") {
+			state "default", label: 'ForecastL\n${currentValue}°', unit: "C"
+		}
+		valueTile("weatherPressure", "device.weatherPressure", inactiveLabel: false,
+			width: 2, height: 2, decoration: "flat") {
+			state "default", label: 'Pressure\n${currentValue}', unit: "hpa"
+		}
+		valueTile("weatherWindDirection", "device.weatherWindDirection",
+			inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
+			state "default", label: 'W.Dir\n${currentValue}'
+		}
+		valueTile("weatherWindSpeed", "device.weatherWindSpeed", inactiveLabel: false,
+			width: 2, height: 2, decoration: "flat") {
+			state "default", label: 'W.Speed\n${currentValue}'
+		}
+		valueTile("weatherPop", "device.weatherPop", inactiveLabel: false, width: 2,
+			height: 2, decoration: "flat") {
+			state "default", label: 'PoP\n${currentValue}%', unit: "%"
+		}
+*/        
+		standardTile("refresh", "device.thermostatMode", inactiveLabel: false,
+			decoration: "flat",width: 2, height: 2) {
+			state "default", action: "polling.poll", icon: "st.secondary.refresh"
+		}
+//		main "summary"
+//		details([/* "name", */ /* "groups",*/ "humidity", "operatingState", "mode", "temperature", "fanMode", "switchProgram",
+//			"heatLevelDown", "heatingSetpoint", "heatLevelUp", "coolLevelDown",
+//			"coolingSetpoint", "coolLevelUp",
+//			"equipStatus", "programEndTimeMsg",  "alerts",
+//			"fanMinOnTime", "programScheduleName", "programType", "programCoolTemp",
+//			"programHeatTemp", "resProgram",
 /*			"weatherIcon", "weatherDateTime", "weatherConditions",
 			"weatherTemperature", "weatherRelativeHumidity", "weatherTempHigh",
+//			"weatherTempLow", "weatherPressure", "weatherWindDirection",
+//			"weatherWindSpeed", "weatherPop", */ 
+//			"refresh",
+//		])
+		main "summary"
+		details("summary", "name", "groups", "mode",  "switchProgram", "resProgram", "fanMode",
+ 			"heatLevelUp", "coolLevelUp", "heatingSetpoint", "coolingSetpoint", "heatLevelDown", "coolLevelDown",
+ 			 "programEndTimeMsg", "alerts","weatherDateTime", "weatherConditions",
+			"humidity","fanMinOnTime", "programScheduleName", "programType", "programCoolTemp",
+			"programHeatTemp",             
+/*			"weatherIcon", "weatherTemperature", "weatherRelativeHumidity", "weatherTempHigh",
 			"weatherTempLow", "weatherPressure", "weatherWindDirection",
-			"weatherWindSpeed", "weatherPop", */ "refresh",
-		])
+			"weatherWindSpeed", "weatherPop", 
+*/			"refresh"
+		)
 	}
 }
 
