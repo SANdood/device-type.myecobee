@@ -1091,10 +1091,10 @@ private void generateEvent(Map results) {
 					sendEvent(name: name, value: speedValue.toString(), unit: getDistanceScale(), isStateChange: true, displayed: isDisplayed)
                 }
                 
-			} else if (name.toUpperCase().contains("HUMIDITY")) {
- 				Double humidityValue = value.toDouble().round(1)
+			} else if ((name.toUpperCase().contains("HUMIDITY")) || (name.toUpperCase().contains("LEVEL"))) {
+ 				Double humValue = value.toDouble().round(0)
  				String humValueString = String.format('%2d', humValue.intValue())
-				if (isStateChange(device, name, humValueString) {
+				if (isStateChange(device, name, humValueString)) {
                 	changedCount++ 
 					sendEvent(name: name, value: humValueString, unit: "%", isStateChange: true, displayed: isDisplayed)
                 }					
