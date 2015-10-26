@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 2.2.1
+ *  Version 2.2.2
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -522,29 +522,31 @@ void heatLevelDown() {
 // handle commands
 
 void setHeatingSetpoint(temp) {
-	def thermostatId= determine_tstat_id("") 	    
-	setHold(thermostatId, device.currentValue("coolingSetpoint"), temp,
+	setHold("", device.currentValue("coolingSetpoint"), temp,
 		null, null)
-	sendEvent(name: 'heatingSetpoint', value: temp,unit: getTemperatureScale())
-	sendEvent(name: 'heatingSetpointDisplay', value: temp,unit: getTemperatureScale(), displayed: false)
-	def currentMode = device.currentValue("thermostatMode")
-	if ((currentMode=='heat') || (currentMode=='auto')) {
-		sendEvent(name: 'thermostatSetpoint', value: temp,unit: getTemperatureScale())     
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setHold>done")) {
+		sendEvent(name: 'heatingSetpoint', value: temp,unit: getTemperatureScale())
+		sendEvent(name: 'heatingSetpointDisplay', value: temp,unit: getTemperatureScale())
+		def currentMode = device.currentValue("thermostatMode")
+		if ((currentMode=='heat') || (currentMode=='auto')) {
+			sendEvent(name: 'thermostatSetpoint', value: temp,unit: getTemperatureScale())     
+		} 
 	} 
 }
-
 
 void setCoolingSetpoint(temp) {
 	setHold("", temp, device.currentValue("heatingSetpoint"),
 		null, null)
-
 	def currentMode = device.currentValue("thermostatMode")
-	sendEvent(name: 'coolingSetpoint', value: temp, unit: getTemperatureScale())
-	sendEvent(name: 'coolingSetpointDisplay', value: temp, unit: getTemperatureScale(), displayed: false)
-	if ((currentMode=='cool') || (currentMode=='auto')) {
-		sendEvent(name:'thermostatSetpoint', value: temp, unit: getTemperatureScale())     
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setHold>done")) {
+		sendEvent(name: 'coolingSetpoint', value: temp, unit: getTemperatureScale())
+		sendEvent(name: 'coolingSetpointDisplay', value: temp, unit: getTemperatureScale())
+		if ((currentMode=='cool') || (currentMode=='auto')) {
+			sendEvent(name:'thermostatSetpoint', value: temp, unit: getTemperatureScale())     
+		}
 	}
-
 }
 
 void off() {
@@ -568,7 +570,10 @@ void cool() {
 void setThermostatMode(mode) {
 	mode = mode == 'emergency heat' ? 'heat' : mode
 	setThermostatSettings("", ['hvacMode': "${mode}"])
-	sendEvent(name: 'thermostatMode', value: mode)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'thermostatMode', value: mode)
+	}
 }
 void fanOn() {
 	setThermostatFanMode('on')
@@ -584,12 +589,21 @@ def fanCirculate() {
 	setFanMinOnTime(15)	// Set a minimum of 15 minutes of fan per hour
 }
 void setThermostatFanMode(mode) {
-	setThermostatSettings("", ['fanMinOnTime': "${minutes}"])
-	sendEvent(name: 'thermostatFanMode', value: mode)
+	mode = (mode == 'off') ? 'auto' : mode
+	setHold("", device.currentValue("coolingSetpoint"), device
+		.currentValue("heatingSetpoint"),
+		mode, null)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setHold>done")) {
+		sendEvent(name: 'thermostatFanMode', value: mode)
+	}        
 }
 void setFanMinOnTime(minutes) {
-	etThermostatSettings("", ['fanMinOnTime': "${minutes}"])
-	sendEvent(name: 'fanMinOnTime', value: minutes)
+	setThermostatSettings("", ['fanMinOnTime': "${minutes}"])
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'fanMinOnTime', value: minutes)
+	}        
 }
 void ventilatorOn() {
 	setVentilatorMode('on')
@@ -601,19 +615,29 @@ void ventilatorAuto() {
 	setVentilatorMode('auto')
 }
 void setVentilatorMinOnTime(minutes) {
-	setThermostatSettings("", ['vent': "minontime", 'ventilatorMinOnTime': "${minutes}"])
-	sendEvent(name: 'ventilatorMinOnTime', value: minutes)
-	sendEvent(name: 'ventilatorMode', value: "minontime")
+	setThermostatSettings("", ['vent': "minontime",
+			'ventilatorMinOnTime': "${minutes}"])
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'ventilatorMinOnTime', value: minutes)
+		sendEvent(name: 'ventilatorMode', value: "minontime")
+	}        
 }
 void setVentilatorMode(mode) {
 	setThermostatSettings("", ['vent': "${mode}"])
-	sendEvent(name: 'ventilatorMode', value: mode)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'ventilatorMode', value: mode)
+	}        
 }
 void setCondensationAvoid(flag) { // set the flag to true or false
 	flag = flag == 'true' ? 'true' : 'false'
  	def mode = (flag=='true')? 'auto': 'manual'
 	setHumidifierMode(mode)
-	sendEvent(name: 'condensationAvoid', value: flag)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'condensationAvoid', value: flag)
+	}        
 }
 void dehumidifierOn() {
 	setDehumidifierMode('on')
@@ -623,11 +647,17 @@ void dehumidifierOff() {
 }
 void setDehumidifierMode(mode) {
 	setThermostatSettings("", ['dehumidifierMode': "${mode}"])
-	sendEvent(name: 'dehumidifierMode', value: mode)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'dehumidifierMode', value: mode)
+	}        
 }
 void setDehumidifierLevel(level) {
 	setThermostatSettings("", ['dehumidifierLevel': "${level}"])
-	sendEvent(name: 'dehumidifierLevel', value: level)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'dehumidifierLevel', value: level)
+	}        
 }
 void humidifierAuto() {
 	setHumidifierMode('auto')
@@ -640,23 +670,36 @@ void humidifierOff() {
 }
 void setHumidifierMode(mode) {
 	setThermostatSettings("", ['humidifierMode': "${mode}"])
-	sendEvent(name: 'humidifierMode', value: mode)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'humidifierMode', value: mode)
+	}        
 }
 void setHumidifierLevel(level) {
 	setThermostatSettings("", ['humidity': "${level}"])
-	sendEvent(name: 'humidifierLevel', value: level)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'humidifierLevel', value: level)
+	}        
 }
 // Only valid for ecobee3 thermostats, not for EMS or Smart, Smart-SI thermostats)
 void followMeComfort(flag) {
 	flag = flag == 'true' ? 'true' : 'false'
 	setThermostatSettings("", ['followMeComfort': "${flag}"])
-	sendEvent(name: 'followMeComfort', value: flag)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'followMeComfort', value: flag)
+	}        
 }
 // Only valid for ecobee3 thermostats, not for EMS or Smart, Smart-SI thermostats)
+
 void autoAway(flag) {
 	flag = flag == 'true' ? 'true' : 'false'
 	setThermostatSettings("", ['autoAway': "${flag}"])
-	sendEvent(name: 'autoAway', value: flag)
+	def exceptionCheck=device.currentValue("verboseTrace")
+	if (exceptionCheck.contains("setThermostatSettings>done")) {
+		sendEvent(name: 'autoAway', value: flag)
+	}        
 }
 
 void awake() {
