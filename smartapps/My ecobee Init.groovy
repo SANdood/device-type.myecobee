@@ -43,11 +43,13 @@ def about() {
  	dynamicPage(name: "about", install: false, uninstall: true) {
  		section("About") {	
 			paragraph "My Ecobee Init, the smartapp that connects your Ecobee thermostat to SmartThings via cloud-to-cloud integration"
-			paragraph "Version 2.0.1\n\n" +
-			"If you like this app, please support the developer via PayPal:\n\nyracine@yahoo.com\n\n" +
-			"Copyright©2014 Yves Racine"
-			href url:"http://github.com/yracine/device-type.myecobee", style:"embedded", required:false, title:"More information...", 
-			description: "http://github.com/yracine/device-type.myecobee"
+			paragraph "Version 2.3.1\n\n" 
+			paragraph "If you like this smartapp, please support the developer via PayPal and click on the Paypal link below " 
+				href url: "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=yracine%40yahoo%2ecom&lc=US&item_name=Maisons%20ecomatiq&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest",
+					title:"Paypal donation..."
+			paragraph "Copyright©2014 Yves Racine"
+				href url:"http://github.com/yracine/device-type.myecobee", style:"embedded", required:false, title:"More information...", 
+					description: "http://github.com/yracine/device-type.myecobee"
 		}
 	}        
 }
@@ -203,16 +205,9 @@ def getEcobeeThermostats(String type="") {
 		httpGet(deviceListParams) { resp ->
 
 			if (resp.status == 200) {
-/*        
-        		int i=0    // Used to simulate many thermostats
-*/
 				resp.data.thermostatList.each { stat ->
 					def dni = [ app.id, stat.name, stat.identifier ].join('.')
 					stats[dni] = getThermostatDisplayName(stat)
-/*
-					dni = [ app.id, stat.name, i,stat.identifier ].join('.')    // Used to simulate many thermostats     
-					stats[dni] = getThermostatDisplayName(stat)
-*/
 				}
 			} else {
 				log.debug "http status: ${resp.status}"
@@ -229,12 +224,20 @@ def getEcobeeThermostats(String type="") {
             
     	}        
 	} catch (java.net.UnknownHostException e) {
-		log.error "getEcobeeThermostats> Unknown host - check the URL " + deviceListParams.uri
+		state?.msg ="Unknown host - check the URL " + deviceListParams.uri
+		log.error state.msg        
+		runIn(30, "sendMsgWithDelay")
 	} catch (java.net.NoRouteToHostException t) {
-		log.error "getEcobeeThermostats> No route to host - check the URL " + deviceListParams.uri
+		state?.msg= "No route to host - check the URL " + deviceListParams.uri
+		log.error state.msg        
+		runIn(30, "sendMsgWithDelay")
 	} catch (java.io.IOException e) {
-		log.debug "getEcobeeThermostats> error/exception ($e)  getting list of thermostats, probable cause: not the right account for this type (${type}) of thermostat " +
-			deviceListParams
+		log.debug "getEcobeeThermostats>$e while getting list of thermostats, probable cause: not the right account for this type (${type}) of thermostat " +
+			deviceListParams            
+	} catch (e) {
+		state?.msg= "exception $e while getting list of thermostats" 
+		log.error state.msg        
+		runIn(30, "sendMsgWithDelay")
     }
 
 	log.debug "thermostats: $stats"
@@ -339,12 +342,15 @@ private def delete_child_devices() {
 		delete = getChildDevices().findAll { !thermostats.contains(it.deviceNetworkId) }
 	}
 
-	try { 
-		delete.each { deleteChildDevice(it.deviceNetworkId) }
-		log.debug "delete_child_devices>deleting ${delete.size()} ecobee thermostats"  
-	} catch (e) {
-		log.debug "delete_child_devices>exception $e while deleting ${delete.size()} ecobee thermostats"
+	delete.each { 
+		try {    
+			deleteChildDevice(it.deviceNetworkId) 
+		} catch (e) {
+			log.error "delete_child_devices>exception $e while deleting ecobee thermostat ${it.deviceNetworkId}"
+			send "MyEcobeeInit>exception $e while deleting ecobee thermostat ${it.deviceNetworkId}"
+		}   
 	}
+	log.debug "delete_child_devices>deleted ${delete.size()} ecobee thermostats"
 }
 
 private def create_child_devices() {
@@ -622,7 +628,9 @@ def toQueryString(Map m) {
 def getChildNamespace() { "yracine" }
 def getChildName() { "My Ecobee Device" }
 
-def getServerUrl() { return "https://graph.api.smartthings.com" }
+//def getServerUrl() { return "https://graph.api.smartthings.com" }
+
+def getServerUrl() { return getApiServerUrl()  }
 
 def getSmartThingsClientId() { "qqwy6qo0c2lhTZGytelkQ5o8vlHgRsrO" }
 
