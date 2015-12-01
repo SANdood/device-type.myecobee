@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 3.1.4
+ *  Version 3.1.4-BAB
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -3386,7 +3386,7 @@ private def refresh_tokens() {
 		return false
 	}
 	// determine token's expire time
-	def authexptime = new Date((now() + (data.auth.expires_in * 60 * 1000))).getTime()
+	def authexptime = new Date((now() + (data.auth.expires_in * 1000))).getTime()
 	data.auth.authexptime = authexptime
 
 	// If this thermostat was created by initialSetup, go and refresh the parent and all other children
@@ -3394,10 +3394,10 @@ private def refresh_tokens() {
 		refreshParentTokens()
 	}        
 	if (settings.trace) {
-		log.debug "refresh_tokens> expires in ${data.auth.expires_in} minutes"
+		log.debug "refresh_tokens> expires in ${data.auth.expires_in} seconds"
 		log.debug "refresh_tokens> data_auth.expires_in in time = ${authexptime}"
 		sendEvent name: "verboseTrace", value:
-			"refresh_tokens>expire in ${data.auth.expires_in} minutes"
+			"refresh_tokens>expire in ${data.auth.expires_in} seconds"
 	}
 	return true
 }
@@ -3558,13 +3558,13 @@ void setAuthTokens() {
 			return
 		}
 		// determine token's expire time
-		def authexptime = new Date((now() + (data.auth.expires_in * 60 * 1000))).getTime()
+		def authexptime = new Date((now() + (data.auth.expires_in * 1000))).getTime()
 		data.auth.authexptime = authexptime
 		if (settings.trace) {
-			log.debug "setAuthTokens> expires in ${data.auth.expires_in} minutes"
+			log.debug "setAuthTokens> expires in ${data.auth.expires_in} seconds"
 			log.debug "setAuthTokens> data_auth.expires_in in time = ${authexptime}"
 			sendEvent name: "verboseTrace", value:
-				"setAuthTokens>expire in ${data.auth.expires_in} minutes"
+				"setAuthTokens>expire in ${data.auth.expires_in} seconds"
 		}
 	}
 }
