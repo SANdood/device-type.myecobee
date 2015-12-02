@@ -2,7 +2,7 @@
  *  My Ecobee Device
  *  Copyright 2014 Yves Racine
  *  linkedIn profile: ca.linkedin.com/pub/yves-racine-m-sc-a/0/406/4b/
- *  Version 3.1.4-BAB
+ *  Version 3.2.2-BAB
  *  Code: https://github.com/yracine/device-type.myecobee
  *  Refer to readme file for installation instructions.
  *
@@ -499,60 +499,76 @@ metadata {
 }
 
 void coolLevelUp() {
-	int nextLevel = device.currentValue("coolingSetpoint") + 1
 	def scale = getTemperatureScale()
 	if (scale == 'C') {
+		double nextLevel = device.currentValue("coolingSetpoint").toDouble() 
+		nextLevel = (nextLevel + 0.5).round(1)        
 		if (nextLevel > 30) {
 			nextLevel = 30
 		}
+		setCoolingSetpoint(nextLevel)
 	} else {
+		int nextLevel = device.currentValue("coolingSetpoint") 
+		nextLevel = nextLevel + 1    
 		if (nextLevel > 99) {
 			nextLevel = 99
 		}
+		setCoolingSetpoint(nextLevel)
 	}
-	setCoolingSetpoint(nextLevel)
 }
 void coolLevelDown() {
-	int nextLevel = device.currentValue("coolingSetpoint") - 1
 	def scale = getTemperatureScale()
 	if (scale == 'C') {
+		double nextLevel = device.currentValue("coolingSetpoint").toDouble() 
+		nextLevel = (nextLevel - 0.5).round(1)        
 		if (nextLevel < 10) {
-			nextLevel = 10
+			nextLevel = 10.0
 		}
+		setCoolingSetpoint(nextLevel)
 	} else {
+		int nextLevel = device.currentValue("coolingSetpoint") 
+		nextLevel = (nextLevel - 1)
 		if (nextLevel < 50) {
 			nextLevel = 50
 		}
+		setCoolingSetpoint(nextLevel)
 	}
-	setCoolingSetpoint(nextLevel)
 }
 void heatLevelUp() {
-	int nextLevel = device.currentValue("heatingSetpoint") + 1
 	def scale = getTemperatureScale()
 	if (scale == 'C') {
+		double nextLevel = device.currentValue("heatingSetpoint").toDouble() 
+		nextLevel = (nextLevel + 0.5).round(1)        
 		if (nextLevel > 30) {
-			nextLevel = 30
+			nextLevel = 30.0
 		}
+		setHeatingSetpoint(nextLevel)
 	} else {
+		int nextLevel = device.currentValue("heatingSetpoint") 
+		nextLevel = (nextLevel + 1)
 		if (nextLevel > 99) {
 			nextLevel = 99
 		}
+		setHeatingSetpoint(nextLevel)
 	}
-	setHeatingSetpoint(nextLevel)
 }
 void heatLevelDown() {
-	int nextLevel = device.currentValue("heatingSetpoint") - 1
 	def scale = getTemperatureScale()
 	if (scale == 'C') {
+		double nextLevel = device.currentValue("heatingSetpoint").toDouble() 
+		nextLevel = (nextLevel - 0.5).round(1)        
 		if (nextLevel < 10) {
-			nextLevel = 10
+			nextLevel = 10.0
 		}
+		setHeatingSetpoint(nextLevel)
 	} else {
+		int nextLevel = device.currentValue("heatingSetpoint")
+		nextLevel = (nextLevel - 1)
 		if (nextLevel < 50) {
 			nextLevel = 50
 		}
+		setHeatingSetpoint(nextLevel)
 	}
-	setHeatingSetpoint(nextLevel)
 }
 
 // handle commands
@@ -745,15 +761,12 @@ void awake() {
 }
 void away() {
 	setThisTstatClimate("Away")
-//	sendEvent(name: "presence", value: "not present")
 }
 void present() {
 	home()
 }
 void home() {
 	setThisTstatClimate("Home")
-//	sendEvent(name: "presence", value: "present")
-
 }
 void night() {
 	setThisTstatClimate("Sleep")
@@ -777,8 +790,8 @@ void quickSave() {
 	if (scale == 'C') {
 		quickSaveSetBack = data.thermostatList[0].settings.quickSaveSetBack.toFloat() / 2 // approximate conversion of differential to celcius
 		quickSaveSetForw = data.thermostatList[0].settings.quickSaveSetForward.toFloat() / 2
-		quickSaveCooling = fToC(data.thermostatList[0].runtime.desiredCool.toFloat)
-		quickSaveHeating = fToC(data.thermostatList[0].runtime.desiredHeat.toFloat)
+		quickSaveCooling = fToC(data.thermostatList[0].runtime.desiredCool.toFloat())
+		quickSaveHeating = fToC(data.thermostatList[0].runtime.desiredHeat.toFloat())
 	} else {
 		quickSaveSetBack = data.thermostatList[0].settings.quickSaveSetBack.toFloat()
 		quickSaveSetForw = data.thermostatList[0].settings.quickSaveSetForward.toFloat()
@@ -810,6 +823,9 @@ void setThisTstatClimate(climateName) {
 	}
     else if ((currentProgramType == 'HOLD') || (currentProgramType == "PROGRAM")) {
     	resumeProgram("")		// let's get back to normal first
+    	def cmd= []           
+		cmd << "delay 2000"                    
+		cmd 
     	poll()					// pick up the changed attributes (ideally we'd pause for a few seconds, but can't in a SmartDevice)
         currentProgram = device.currentValue("climateName")		// get what it is NOW
         log.trace "Resuming scheduled climate: ${currentProgram}"
@@ -817,9 +833,15 @@ void setThisTstatClimate(climateName) {
  
 	// If the requested climate is different from current one, then change it to the given climate
 	if (currentProgram.toUpperCase() != climateName.trim().toUpperCase()) {
-//		resumeProgram("")
-
-		setClimate(thermostatId, climateName)
+		resumeProgram("")
+		def cmd= []           
+		cmd << "delay 2000"                    
+		cmd
+		poll()
+        currentProgram = device.currentValue("climateName")		// get what it is NOW
+        if (currentProgram.toUpperCase() != climateName.trim().toUpperCase()) {
+			setClimate(thermostatId, climateName)
+        }
 		def exceptionCheck=device.currentValue("verboseTrace")
 		if (exceptionCheck.contains("setClimate>done")) {
         	log.trace "setClimate ${climateName} done"
@@ -1046,28 +1068,7 @@ void poll() {
 	}
 	
 //Yves' approach calls generateEvent 3x more times for data that almost never changes...
-/*	if (data.thermostatList[0].settings.hasHumidifier) {
-		dataEvents = [
-			humidifierMode: data.thermostatList[0].settings.humidifierMode,
-			humidifierLevel:data.thermostatList[0].settings.humidity
-		]
-		generateEvent(dataEvents)        
-	}
-	if (data.thermostatList[0].settings.hasDehumidifier) {
-		dataEvents = [
-			dehumidifierMode: data.thermostatList[0].settings.dehumidifierMode,
-			dehumidifierLevel:data.thermostatList[0].settings.dehumidifierLevel
-		]            
-		generateEvent(dataEvents)                    
-	}
-	if ((data.thermostatList[0].settings.hasHrv) || (data.thermostatList[0].settings.hasErv)) {
-		dataEvents = [
-			ventilatorMinOnTime:data.thermostatList[0].settings.ventilatorMinOnTime.toString(),
-			ventilatorMode: data.thermostatList[0].settings.vent
-		]            
-		generateEvent(dataEvents)                    
-	}
-*/	if (settings.trace) {
+	if (settings.trace) {
 	    log.trace 'poll> done!'
 	}
 	sendEvent name: "verboseTrace", value: "poll>done for thermostatId =${thermostatId}", displayed: (settings.trace? true : false)
@@ -1295,25 +1296,7 @@ private void api(method, args, success = {}) {
 			state.exceptionCount=0
 		}            
 	} 
-//	else {
-//		log.debug "state.exceptionCount: ${state.exceptionCount}"
-//		state.exceptionCount = (state.exceptionCount > 1) ? state.exceptionCount -1 : 0 // hack to make sure we don't get stuck
-//		log.debug "state.exceptionCount: ${state.exceptionCount}"
-//		if (state.exceptionCount == MAX_EXCEPTION_COUNT) {
-//			if (!refresh_tokens()) {
-//				login()
-//					if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
-//					log.error ("api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
-//					sendEvent (name: "verboseTrace", 
-//						value: "api>not able to renew the refresh token, need to re-authenticate with ecobee, run MyEcobeeInit....")         
-//					return		
-//				}
-//			} else {
-//				/* Reset Exceptions counter as the refresh_tokens() call has been successful */    
-//				state.exceptionCount=0
-//			}
-//		}
-//	}
+
 	if (state.exceptionCount >= MAX_EXCEPTION_COUNT) {
 
 		log.error ("api>error: found a high number of exceptions (${state.exceptionCount}), will try to refresh tokens, it it fails, you should run MyEcobeeInit and re-login to ecobee....")
@@ -1395,12 +1378,12 @@ private void doRequest(uri, args, type, success) {
 		log.error "doRequest> Unknown host - check the URL " + params.uri
 		sendEvent name: "verboseTrace", value: "doRequest> Unknown host ${params.uri}"
 		state.exceptionCount = state.exceptionCount +1
-		throw e
+//		throw e
 	} catch (java.net.NoRouteToHostException e) {
 		log.error "doRequest> No route to host - check the URL " + params.uri
 		sendEvent name: "verboseTrace", value: "doRequest> No route to host ${params.uri}"
 		state.exceptionCount = state.exceptionCount +1
-		throw e
+//		throw e
 //  	} catch (javax.net.ssl.SSLHandshakeException e) {
 //    	log.error "doRequest> SSL Handshake Exception : " + params.uri
 //    	sendEvent name: "verboseTrace", value: "doRequest> SSL Handshake Exception"
@@ -1414,13 +1397,13 @@ private void doRequest(uri, args, type, success) {
 	} catch (groovyx.net.http.HttpResponseException e) {
 		log.error "doRequest> HTTPResponseException (needs ChildAuth?)- $e"
 		state.exceptionCount = state.exceptionCount +1  // let's try to fix in after 2 failures
-		throw e
+//		throw e
 	} catch (e) {
 		log.debug "doRequest>exception $e for " + params.body
 		sendEvent name: "verboseTrace", value:
 			"doRequest>exception $e for " + params.body
 		state.exceptionCount = state.exceptionCount +1
-		throw e    
+//		throw e    
 	}
 }
 
@@ -2547,7 +2530,7 @@ void controlPlug(thermostatId, plugName, plugState, plugSettings = []) {
  				]
                 
 				if (plugSettings) {
-					plugEvents = plugEvents + [plugSettings: plugSettings]
+					plugEvents = plugEvents + [plugSettings: plugSet]
 				}
 				generateEvent(plugEvents)
 			} else {
@@ -3690,9 +3673,9 @@ void initialSetup(device_client_id, auth_data, device_tstat_id) {
 		log.debug "initialSetup> data_auth = $data.auth"
 		log.debug "initialSetup>end"
 	}
-	state.lastPollTimestamp = null
-	state.lastRevisions = null
-	state.tstatRevisions = null
+	state?.lastPollTimestamp = null
+	state?.lastRevisions = null
+	state?.tstatRevisions = null
 	getThermostatInfo(thermostatId)
 	def ecobeeType=determine_ecobee_type_or_location("")
 	data.auth.ecobeeType = ecobeeType
