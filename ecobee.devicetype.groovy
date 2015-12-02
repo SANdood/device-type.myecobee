@@ -1272,7 +1272,7 @@ void resumeThisTstat() {
 }
 
 private void api(method, args, success = {}) {
-	def MAX_EXCEPTION_COUNT=5
+	def MAX_EXCEPTION_COUNT=25
 	String URI_ROOT = "${get_URI_ROOT()}/1"
 	
 	if (!isLoggedIn()) {
@@ -2977,16 +2977,17 @@ void generateRemoteSensorEvents(thermostatId,postData='false') {
 		log.trace "generateRemoteSensorEvents> begin"
 	}
 
-	if (thermostatId) {
+	if ((thermostatId!=null) && (thermostatId !="")) {
 		if (thermostatId.contains(",")) {
-			sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
-			log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
+			if (settings.trace) {
+				sendEvent name: "verboseTrace", value:"generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
+				log.error "generateRemoteSensorEvents>thermostatId ${thermostatId} is not valid"
+			}                
 			return
 		}
-		getThermostatInfo(thermostatId)  // should be poll(), so that tiles are updated
+	} else {
+		thermostatId = determine_tstat_id(thermostatId)
 	}
-	thermostatId = determine_tstat_id(thermostatId)
-
 /* Reset all remote sensor data values */
 	def remoteData = []
 	def remoteTempData = ""
@@ -3255,7 +3256,7 @@ def getThermostatRevision(tstatType, thermostatId) {
 void getThermostatSummary(tstatType) {
 
 // Ecobee's thermostatSummary cannot be called more frequently than once per 3 minutes
-	def poll_interval= 0.25   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
+	def poll_interval= 2   // set a 3 min. poll interval to avoid unecessary load on ecobee (and auth exceptions)
 	def time_check_for_poll = (now() - (poll_interval * 60 * 1000))
 	
 	if ((state?.lastPollTimestamp != null) && (state?.lastPollTimestamp >= time_check_for_poll)) {
