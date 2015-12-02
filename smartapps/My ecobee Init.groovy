@@ -25,10 +25,6 @@ preferences {
 	page(name: "auth", title: "ecobee", content:"authPage", nextPage:"deviceList")
 	page(name: "deviceList", title: "ecobee", content:"ecobeeDeviceList",nextPage: "otherSettings")
 	page(name: "otherSettings", title: "Other Settings", content:"otherSettings", install:true)
-/*
-	Removed the 2nd page as this is not efficient workaround for the ST max execution time constraint
-	page(name: "deviceList2", title: "ecobee", content:"ecobeeDeviceList2", install:true)
-*/
 }
 
 mappings {
@@ -43,7 +39,7 @@ def about() {
  	dynamicPage(name: "about", install: false, uninstall: true) {
  		section("About") {	
 			paragraph "My Ecobee Init, the smartapp that connects your Ecobee thermostat to SmartThings via cloud-to-cloud integration"
-			paragraph "Version 2.3.1-BAB\n\n" 
+			paragraph "Version 2.4.2-BAB\n\n" 
 			paragraph "If you like this smartapp, please support the developer via PayPal and click on the Paypal link below " 
 				href url: "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=yracine%40yahoo%2ecom&lc=US&item_name=Maisons%20ecomatiq&no_note=0&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest",
 					title:"Paypal donation..."
@@ -102,7 +98,7 @@ def authPage() {
 
 	if (!state?.oauthTokenProvided) {
 
-		return dynamicPage(name: "auth", title: "Login", nextPage:null, uninstall:uninstallAllowed) {
+		return dynamicPage(name: "auth", title: "Login", nextPage:null, uninstall:uninstallAllowed, submitOnChange: true) {
 			section(){
 				paragraph "Tap below to log in to the ecobee portal and authorize SmartThings access. Be sure to scroll down on page 2 and press the 'Allow' button."
 				href url:redirectUrl, style:"embedded", required:true, title:"ecobee", description:description
@@ -111,7 +107,7 @@ def authPage() {
 
 	} else {
 
-		return dynamicPage(name: "auth", title: "Log In", nextPage:"deviceList", uninstall:uninstallAllowed) {
+		return dynamicPage(name: "auth", title: "Log In", nextPage:"deviceList", uninstall:uninstallAllowed, submitOnChange: true) {
 			section(){
 				paragraph "Tap Next to continue to setup your thermostats."
 				href url:redirectUrl, style:"embedded", state:"complete", title:"ecobee", description:description
@@ -135,10 +131,8 @@ def ecobeeDeviceList() {
 	log.debug "device list: $ems"
 
 	stats = stats + ems
-/*    
-	def p = dynamicPage(name: "deviceList", title: "Select Your Thermostats", nextPage: "deviceList2") {
-*/    
-	def p = dynamicPage(name: "deviceList", title: "Select Your Thermostats", uninstall: true) {
+  
+	def p = dynamicPage(name: "deviceList", title: "Select Your Thermostats", uninstall: true, submitOnChange: true) {
 		section(""){
 			paragraph "Tap below to see the list of ecobee thermostats available in your ecobee account and select the ones you want to connect to SmartThings (3 max per page)."
 			input(name: "thermostats", title:"", type: "enum", required:true, multiple:true, description: "Tap to choose", metadata:[values:stats])
@@ -167,7 +161,7 @@ def ecobeeDeviceList2() {
 
 	stats = stats + ems
     
-	def p = dynamicPage(name: "deviceList2", title: "Select Your Thermostats", uninstall: true) {
+	def p = dynamicPage(name: "deviceList2", title: "Select Your Thermostats", uninstall: true, submitOnChange: true) {
 		section(""){
 			paragraph "page 2: select the ones you want to connect to SmartThings (3 max per page due to ST execution time constraints)."
 			input(name: "thermostats", title:"", type: "enum", required:true, multiple:true, description: "Tap to choose", metadata:[values:stats])
@@ -388,7 +382,10 @@ def initialize() {
 
 	delete_child_devices()	
 	create_child_devices()
-
+	state?.exceptionCount=0    
+	state?.msg=null
+	state?.poll = [ last: 0, rescheduled: now() ]
+    
 	if (watchdogSwitch) {
     	subscribe( watchdogSwitch, "switch.on", watchdogHandler)
     }
@@ -399,7 +396,7 @@ def initialize() {
 def takeAction() {
 	log.trace "takeAction>begin"
 	def msg, exceptionCheck    
-	def MAX_EXCEPTION_COUNT=5
+	def MAX_EXCEPTION_COUNT=50
 
 	def devices = thermostats.collect { dni ->
 		def d = getChildDevice(dni)
@@ -407,8 +404,8 @@ def takeAction() {
 		try {        
 			d.poll()
 			exceptionCheck = d.currentVerboseTrace.toString()
-			if ((exceptionCheck.contains("exception") || (exceptionCheck.contains("error")) && 
-				(!exceptionCheck.contains("Java.util.concurrent.TimeoutException")))) {  
+			if ((exceptionCheck) && ((exceptionCheck.contains("exception") || (exceptionCheck.contains("error")) && 
+				(!exceptionCheck.contains("Java.util.concurrent.TimeoutException"))))) {  
 			// check if there is any exception or an error reported in the verboseTrace associated to the device (except the ones linked to rate limiting).
 				state.exceptionCount=state.exceptionCount+1    
 				log.error "found exception/error after polling, exceptionCount= ${state?.exceptionCount}: $exceptionCheck" 
@@ -421,14 +418,21 @@ def takeAction() {
 			log.error "MyEcobeeInit>exception $e while trying to poll the device $d, exceptionCount= ${state?.exceptionCount}" 
 		}
 	}
-	if ((state?.exceptionCount>=MAX_EXCEPTION_COUNT) || (exceptionCheck.contains("Unauthorized"))) {
+	if ((exceptionCheck) && (exceptionCheck.contains("Unauthorized"))) {
 		// need to authenticate again    
 		atomicState.authToken=null                    
 		state?.oauthTokenProvided=false
-		msg="too many exceptions/errors or unauthorized exception, $exceptionCheck (${state?.exceptionCount} errors), press on 'ecobee' and re-login..." 
+		msg="$exceptionCheck (${state?.exceptionCount} errors), press on 'ecobee' and re-login..." 
+		send "MyEcobeeInit> ${msg}"
+		log.error msg
+
+	}
+	if (state?.exceptionCount>=MAX_EXCEPTION_COUNT) {
+		msg="too many exceptions/errors, $exceptionCheck (${state?.exceptionCount} errors so far), you may need to press on 'ecobee' and re-login..." 
 		send "MyEcobeeInit> ${msg}"
 		log.error msg
 	}    
+	log.trace "takeAction>end"
 	
     Integer pollTimer = 60
     Integer longDelayTimer = Math.round(pollTimer*2.5)
